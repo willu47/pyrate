@@ -1,0 +1,22 @@
+pyrate.pyrate.tools package
+===========================
+
+Submodules
+----------
+
+pyrate.pyrate.tools.resampler module
+------------------------------------
+
+.. automodule:: pyrate.pyrate.tools.resampler
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyrate.pyrate.tools
+    :members:
+    :undoc-members:
+    :show-inheritance:

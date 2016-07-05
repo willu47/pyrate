@@ -1,0 +1,47 @@
+pyrate package
+==============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    pyrate.algorithms
+    pyrate.repositories
+    pyrate.tools
+
+Submodules
+----------
+
+pyrate.cli module
+-----------------
+
+.. automodule:: pyrate.cli
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyrate.loader module
+--------------------
+
+.. automodule:: pyrate.loader
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyrate.utils module
+-------------------
+
+.. automodule:: pyrate.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyrate
+    :members:
+    :undoc-members:
+    :show-inheritance:

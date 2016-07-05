@@ -1,0 +1,375 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.repositories.aisdb &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../../index.html" />
+    <link rel="up" title="pyrate" href="../../pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyrate.repositories.aisdb</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pyrate.repositories</span> <span class="kn">import</span> <span class="n">sql</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No pandas found&quot;</span><span class="p">)</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="n">EXPORT_COMMANDS</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;report status of this repository.&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;create&#39;</span><span class="p">,</span> <span class="s1">&#39;create the repository.&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;truncate&#39;</span><span class="p">,</span> <span class="s1">&#39;delete all data in this repository.&#39;</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">AISdb</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">readonly</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AISdb"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb">[docs]</a><span class="k">class</span> <span class="nc">AISdb</span><span class="p">(</span><span class="n">sql</span><span class="o">.</span><span class="n">PgsqlRepository</span><span class="p">):</span>
+
+    <span class="n">double_type</span> <span class="o">=</span> <span class="s1">&#39;double precision&#39;</span>
+
+    <span class="n">clean_db_spec</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cols&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;MMSI&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Message_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Navigational_status&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;SOG&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Longitude&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Latitude&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;COG&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Heading&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;IMO&#39;</span><span class="p">,</span> <span class="s1">&#39;integer null&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Draught&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Destination&#39;</span><span class="p">,</span> <span class="s1">&#39;character varying(255)&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Vessel_Name&#39;</span><span class="p">,</span> <span class="s1">&#39;character varying(255)&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_month&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_day&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_hour&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_minute&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;smallint&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;SERIAL PRIMARY KEY&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;indices&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;dt_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Time&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;imo_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;IMO&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;lonlat_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;Latitude&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;MMSI&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;msg_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Message_ID&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;source_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi_imo_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;MMSI&#39;</span><span class="p">,</span><span class="s1">&#39;IMO&#39;</span><span class="p">])</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">dirty_db_spec</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cols&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;MMSI&#39;</span><span class="p">,</span> <span class="s1">&#39;bigint&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Message_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Navigational_status&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;SOG&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Longitude&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Latitude&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;COG&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Heading&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;IMO&#39;</span><span class="p">,</span> <span class="s1">&#39;integer null&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Draught&#39;</span><span class="p">,</span> <span class="n">double_type</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Destination&#39;</span><span class="p">,</span> <span class="s1">&#39;character varying(255)&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;Vessel_Name&#39;</span><span class="p">,</span> <span class="s1">&#39;character varying(255)&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_month&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_day&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_hour&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ETA_minute&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;smallint&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;SERIAL PRIMARY KEY&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;indices&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;dt_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Time&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;imo_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;IMO&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;lonlat_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;Latitude&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;MMSI&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;msg_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Message_ID&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;source_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi_imo_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;MMSI&#39;</span><span class="p">,</span><span class="s1">&#39;IMO&#39;</span><span class="p">])</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">sources_db_spec</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cols&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;SERIAL PRIMARY KEY&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone DEFAULT now()&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;invalid&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;dirty&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">imolist_db_spec</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cols&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi&#39;</span><span class="p">,</span> <span class="s1">&#39;integer NOT NULL&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;imo&#39;</span><span class="p">,</span> <span class="s1">&#39;integer NULL&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;first_seen&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;last_seen&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;constraint&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CONSTRAINT imo_list_key UNIQUE (mmsi, imo)&#39;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">clean_imo_list</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cols&#39;</span><span class="p">:</span> <span class="n">imolist_db_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;constraint&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CONSTRAINT imo_list_pkey PRIMARY KEY (mmsi, imo)&#39;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">action_log_spec</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cols&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone DEFAULT now()&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi&#39;</span><span class="p">,</span> <span class="s1">&#39;integer NOT NULL&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ts_from&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ts_to&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp without time zone&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="s1">&#39;integer NULL&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;indices&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;ts_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;action_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;mmsi_idx&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mmsi&#39;</span><span class="p">])</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;constraint&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CONSTRAINT action_log_pkey PRIMARY KEY (timestamp, action, mmsi)&#39;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AISdb</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">readonly</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clean</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;ais_clean&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_db_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">],</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">clean_db_spec</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;ais_dirty&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirty_db_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">],</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">dirty_db_spec</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;ais_sources&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources_db_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imolist</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;imo_list&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imolist_db_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">],</span>
+                                 <span class="n">constraint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">imolist_db_spec</span><span class="p">[</span><span class="s1">&#39;constraint&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extended</span> <span class="o">=</span> <span class="n">AISExtendedTable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clean_imolist</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;imo_list_clean&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_imo_list</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">],</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_imo_list</span><span class="p">[</span><span class="s1">&#39;constraint&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_log</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;action_log&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_log_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_log_spec</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">],</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">action_log_spec</span><span class="p">[</span><span class="s1">&#39;constraint&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imolist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">extended</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_imolist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_log</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AISdb.status"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb.status">[docs]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Status of PGSql database &quot;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">+</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Table {}: {} rows.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tb</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span> <span class="n">s</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Table {}: not yet created.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tb</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="AISdb.create"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the tables for the AIS data.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">tb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+            <span class="n">tb</span><span class="o">.</span><span class="n">create</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AISdb.truncate"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb.truncate">[docs]</a>    <span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete all data in the AIS table.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">tb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+            <span class="n">tb</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AISdb.ship_info"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb.ship_info">[docs]</a>    <span class="k">def</span> <span class="nf">ship_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imo</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select vessel_name, MIN(time), MAX(time) from ais_clean where message_id = 5 and imo = </span><span class="si">%s</span><span class="s2"> GROUP BY vessel_name&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">imo</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Vessel: {} ({} - {})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">))</span>
+
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select mmsi, first_seen, last_seen from imo_list where imo = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">imo</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;MMSI = {} ({} - {})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AISdb.get_messages_for_vessel"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb.get_messages_for_vessel">[docs]</a>    <span class="k">def</span> <span class="nf">get_messages_for_vessel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">from_ts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">to_ts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_clean_db</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">use_clean_db</span><span class="p">:</span>
+            <span class="n">imo_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imolist</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imo_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_imolist</span>
+
+        <span class="n">where</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;imo = {}&quot;</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">imo</span><span class="p">]</span>
+        <span class="c1">#Amended EOK - no time field in this table</span>
+        <span class="c1"># if not from_ts is None:</span>
+        <span class="c1">#     where.append(&quot;time &gt;= {}&quot;)</span>
+        <span class="c1">#     params.append(from_ts)</span>
+        <span class="c1"># if not to_ts is None:</span>
+        <span class="c1">#     where.append(&quot;time &lt;= {}&quot;)</span>
+        <span class="c1">#     params.append(to_ts)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select mmsi, first_seen, last_seen from {} where {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imo_list</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39; AND &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where</span><span class="p">))</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">))</span>
+            <span class="n">msg_stream</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="c1"># get data for each of this ship&#39;s mmsi numbers, and concat</span>
+            <span class="k">for</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="ow">in</span> <span class="n">cur</span><span class="p">:</span>
+                <span class="n">stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_message_stream</span><span class="p">(</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">from_ts</span><span class="o">=</span><span class="n">first</span><span class="p">,</span> <span class="n">to_ts</span><span class="o">=</span><span class="n">last</span><span class="p">,</span> <span class="n">use_clean_db</span><span class="o">=</span><span class="n">use_clean_db</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">msg_stream</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">msg_stream</span> <span class="o">=</span> <span class="n">stream</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg_stream</span> <span class="o">=</span> <span class="n">msg_stream</span> <span class="o">+</span> <span class="n">stream</span>
+            <span class="k">return</span> <span class="n">msg_stream</span></div>
+
+<div class="viewcode-block" id="AISdb.get_message_stream"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISdb.get_message_stream">[docs]</a>    <span class="k">def</span> <span class="nf">get_message_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">from_ts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">to_ts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_clean_db</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets the stream of messages for the given mmsi, ordered by timestamp ascending&quot;&quot;&quot;</span>
+        <span class="c1"># construct db query</span>
+        <span class="k">if</span> <span class="n">use_clean_db</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extended</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mmsi = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">mmsi</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">from_ts</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">where</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;time &gt;= </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">from_ts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">to_ts</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">where</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;time &lt;= </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to_ts</span><span class="p">)</span>
+
+        <span class="n">cols_list</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">cols</span><span class="p">])</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39; AND &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;SELECT {} FROM {} WHERE {} ORDER BY time ASC&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cols_list</span><span class="p">,</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span> <span class="n">where_clause</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pd</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Pandas not found, cannot create dataframe&quot;</span><span class="p">)</span>
+            <span class="c1"># create pandas dataframe</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+                <span class="n">full_sql</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">mogrify</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">full_sql</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                <span class="n">msg_stream</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="c1"># convert tuples from db cursor into dicts</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="p">:</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">cols</span><span class="p">):</span>
+                        <span class="n">message</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">msg_stream</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">msg_stream</span></div></div>
+
+<div class="viewcode-block" id="AISExtendedTable"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISExtendedTable">[docs]</a><span class="k">class</span> <span class="nc">AISExtendedTable</span><span class="p">(</span><span class="n">sql</span><span class="o">.</span><span class="n">Table</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AISExtendedTable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;ais_extended&#39;</span><span class="p">,</span>
+            <span class="n">AISdb</span><span class="o">.</span><span class="n">clean_db_spec</span><span class="p">[</span><span class="s1">&#39;cols&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;geography(POINT, 4326)&#39;</span><span class="p">)],</span>
+            <span class="n">AISdb</span><span class="o">.</span><span class="n">clean_db_spec</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="AISExtendedTable.create"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISExtendedTable.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE EXTENSION IF NOT EXISTS postgis&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AISExtendedTable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="c1"># trigger for GIS location generation</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;CREATE OR REPLACE FUNCTION location_insert() RETURNS trigger AS &#39;</span>
+<span class="s2">                        BEGIN</span>
+<span class="s2">                            NEW.&quot;location&quot; := ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude),4326);</span>
+<span class="s2">                            RETURN NEW;</span>
+<span class="s2">                        END;</span>
+<span class="s2">                        &#39; LANGUAGE plpgsql;</span>
+<span class="s2">                        CREATE TRIGGER {0}_gis_insert</span>
+<span class="s2">                        BEFORE INSERT OR UPDATE ON {0} FOR EACH ROW EXECUTE PROCEDURE location_insert();</span>
+<span class="s2">                        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">ProgrammingError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;{}_gis_insert already exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AISExtendedTable.create_indices"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISExtendedTable.create_indices">[docs]</a>    <span class="k">def</span> <span class="nf">create_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">idxn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_location_idx&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CREATING GIST INDEX &quot;</span><span class="o">+</span> <span class="n">idxn</span> <span class="o">+</span> <span class="s2">&quot; on table &quot;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE INDEX </span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="o">+</span> <span class="n">idxn</span> <span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> ON </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> USING GIST(</span><span class="se">\&quot;</span><span class="s2">location</span><span class="se">\&quot;</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">ProgrammingError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Index &quot;</span><span class="o">+</span> <span class="n">idxn</span> <span class="o">+</span><span class="s2">&quot; already exists&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AISExtendedTable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">create_indices</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AISExtendedTable.drop_indices"><a class="viewcode-back" href="../../../api/pyrate.repositories.html#pyrate.repositories.aisdb.AISExtendedTable.drop_indices">[docs]</a>    <span class="k">def</span> <span class="nf">drop_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">tbl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">idxn</span> <span class="o">=</span> <span class="n">tbl</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_location_idx&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dropping index: &quot;</span><span class="o">+</span> <span class="n">idxn</span> <span class="o">+</span> <span class="s2">&quot; on table &quot;</span><span class="o">+</span> <span class="n">tbl</span><span class="p">)</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;DROP INDEX IF EXISTS </span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="o">+</span> <span class="n">idxn</span> <span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AISExtendedTable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">drop_indices</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../pyrate.html">pyrate</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

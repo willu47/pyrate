@@ -1,0 +1,38 @@
+pyrate.repositories package
+===========================
+
+Submodules
+----------
+
+pyrate.repositories.aisdb module
+--------------------------------
+
+.. automodule:: pyrate.repositories.aisdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyrate.repositories.file module
+-------------------------------
+
+.. automodule:: pyrate.repositories.file
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyrate.repositories.sql module
+------------------------------
+
+.. automodule:: pyrate.repositories.sql
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyrate.repositories
+    :members:
+    :undoc-members:
+    :show-inheritance:

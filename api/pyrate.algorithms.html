@@ -1,0 +1,424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.algorithms package &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../index.html" />
+    <link rel="up" title="pyrate package" href="pyrate.html" />
+    <link rel="next" title="pyrate.repositories package" href="pyrate.repositories.html" />
+    <link rel="prev" title="pyrate package" href="pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyrate-algorithms-package">
+<h1>pyrate.algorithms package<a class="headerlink" href="#pyrate-algorithms-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyrate.algorithms.aisparser">
+<span id="pyrate-algorithms-aisparser-module"></span><h2>pyrate.algorithms.aisparser module<a class="headerlink" href="#module-pyrate.algorithms.aisparser" title="Permalink to this headline">¶</a></h2>
+<p>Parses the AIS data from csv of xml files and populates the AIS database</p>
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.check_imo">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">check_imo</code><span class="sig-paren">(</span><em>imo</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#check_imo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.check_imo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.float_or_null">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">float_or_null</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#float_or_null"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.float_or_null" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.get_data_source">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">get_data_source</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#get_data_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.get_data_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Guesses data source from file name.</p>
+<p>If the name contains &#8216;terr&#8217; then we guess terrestrial data,
+otherwise we assume satellite.</p>
+<dl class="docutils">
+<dt>name</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>File name</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">0 if satellite, 1 if terrestrial</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)">int</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.imostr">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">imostr</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#imostr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.imostr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.int_or_null">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">int_or_null</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#int_or_null"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.int_or_null" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.longstr">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">longstr</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#longstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.longstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.parse_file">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">parse_file</code><span class="sig-paren">(</span><em>fp</em>, <em>name</em>, <em>ext</em>, <em>baddata_logfile</em>, <em>cleanq</em>, <em>dirtyq</em>, <em>source=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#parse_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.parse_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a file containing AIS data, placing rows of data onto queues</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fp</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; Filepath of file to be parsed</li>
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; Name of file to be parsed</li>
+<li><strong>ext</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; Extension, either &#8216;.csv&#8217; or &#8216;.xml&#8217;</li>
+<li><strong>baddata_logfile</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; Name of the logfile</li>
+<li><strong>cleanq</strong> &#8211; Queue for messages to be inserted into clean table</li>
+<li><strong>dirtyq</strong> &#8211; Queue for messages to be inserted into dirty table</li>
+<li><strong>source</strong> (<em>int, optional, default=0</em>) &#8211; 0 is satellite, 1 is terrestrial</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>invalid_ctr</strong> (<em>int</em>) &#8211; Number of invalid rows</li>
+<li><strong>clean_ctr</strong> (<em>int</em>) &#8211; Number of clean rows</li>
+<li><strong>dirty_ctr</strong> (<em>int</em>) &#8211; Number of dirty rows</li>
+<li><strong>time_elapsed</strong> (<em>time</em>) &#8211; The time elapsed since starting the parse_file procedure</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.parse_raw_row">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">parse_raw_row</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#parse_raw_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.parse_raw_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse values from row, returning a new dict with converted values</p>
+<p>Parse values from row, returning a new dict with converted values
+converted into appropriate types. Throw an exception to reject row</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>row</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#dict" title="(in Python v3.5)"><em>dict</em></a>) &#8211; A dictionary of headers and values from the csv file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>converted_row</strong> &#8211; A dictionary of headers and values converted using the helper functions</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#dict" title="(in Python v3.5)">dict</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.parse_timestamp">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">parse_timestamp</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#parse_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.parse_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.readcsv">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">readcsv</code><span class="sig-paren">(</span><em>fp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#readcsv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.readcsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of the subset of columns required</p>
+<p>Reads each line in CSV file, checks if all columns are available,
+and returns a dictionary of the subset of columns required
+(as per AIS_CSV_COLUMNS).</p>
+<p>If row is invalid (too few columns),
+returns an empty dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fp</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; File path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><strong>rowsubset</strong> (<em>dict</em>) &#8211; A dictionary of the subset of columns as per <cite>columns</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.readxml">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">readxml</code><span class="sig-paren">(</span><em>fp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#readxml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.readxml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.run">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">run</code><span class="sig-paren">(</span><em>inp</em>, <em>out</em>, <em>dropindices=True</em>, <em>source=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate the AIS_Raw database with messages from the AIS csv files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inp</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; The name of the repositor(-y/-ies) as defined in the global variable
+<cite>INPUTS</cite></li>
+<li><strong>out</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; The name of the repositor(-y/-ies) as defined in the global variable
+<cite>OUTPUTS</cite></li>
+<li><strong>dropindices</strong> (<em>bool, optional, default=True</em>) &#8211; Drop indexes for faster insert</li>
+<li><strong>source</strong> (<em>int, optional, default=0</em>) &#8211; Indicates terrestrial (1) or satellite data (0)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.set_null_on_fail">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">set_null_on_fail</code><span class="sig-paren">(</span><em>row</em>, <em>col</em>, <em>test</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#set_null_on_fail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.set_null_on_fail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function which sets the column in a row of data to null on fail</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>row</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#dict" title="(in Python v3.5)"><em>dict</em></a>) &#8211; A dictionary of the fields</li>
+<li><strong>col</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; The column to check</li>
+<li><strong>test</strong> (<em>func</em>) &#8211; One of the validation functions in pyrate.utils</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.validate_row">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">validate_row</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#validate_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.validate_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.aisparser.xml_name_to_csv">
+<code class="descclassname">pyrate.algorithms.aisparser.</code><code class="descname">xml_name_to_csv</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/aisparser.html#xml_name_to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.aisparser.xml_name_to_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a tag name from an XML file to the corresponding name from CSV.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.algorithms.imolist">
+<span id="pyrate-algorithms-imolist-module"></span><h2>pyrate.algorithms.imolist module<a class="headerlink" href="#module-pyrate.algorithms.imolist" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pyrate.algorithms.imolist.create_imo_list">
+<code class="descclassname">pyrate.algorithms.imolist.</code><code class="descname">create_imo_list</code><span class="sig-paren">(</span><em>aisdb</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/imolist.html#create_imo_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.imolist.create_imo_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the imo list table from MMSI, IMO pairs in clean and dirty tables.</p>
+<p>This method collects the unique MMSI, IMO pairs from a table, and the time
+intervals over-which they have been seen in the data. These tuples are
+then upserted into the <cite>imo_list</cite> table.</p>
+<p>Removes cases where ships have clashing MMSI numbers within a time threshold.</p>
+<p>On the clean table pairs with no IMO number are also collected to get the
+activity intervals of MMSI numbers. On the dirty table only messages
+specifying an IMO are collected.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>aisdb</strong> (<em>postgresdb</em>) &#8211; The database upon which to operate</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.imolist.run">
+<code class="descclassname">pyrate.algorithms.imolist.</code><code class="descname">run</code><span class="sig-paren">(</span><em>_</em>, <em>out</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/imolist.html#run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.imolist.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.algorithms.vesselimporter">
+<span id="pyrate-algorithms-vesselimporter-module"></span><h2>pyrate.algorithms.vesselimporter module<a class="headerlink" href="#module-pyrate.algorithms.vesselimporter" title="Permalink to this headline">¶</a></h2>
+<p>Extracts a subset of clean ships into ais_extended tables</p>
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.cluster_table">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">cluster_table</code><span class="sig-paren">(</span><em>aisdb</em>, <em>table</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#cluster_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.cluster_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a clustering of the postgresql table on the MMSI index.</p>
+<p>This process significantly improves the runtime of extended table generation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.filter_good_ships">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">filter_good_ships</code><span class="sig-paren">(</span><em>aisdb</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#filter_good_ships"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.filter_good_ships" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a set of imo numbers and (mmsi, imo) validity intervals</p>
+<p>Generate a set of imo numbers and (mmsi, imo) validity intervals
+for ships which are deemed to be &#8216;clean&#8217;.
+A clean ship is defined as one which:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Has valid MMSI numbers associated with it.</li>
+<li>For each MMSI number, the period of time it is associated with this IMO</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>(via message number 5) overlaps with the period the MMSI number was in use.</dt>
+<dd><ul class="first last simple">
+<li>For each MMSI number, its usage period does not overlap with that of any</li>
+</ul>
+</dd>
+<dt>other of this ship&#8217;s MMSI numbers.</dt>
+<dd><ul class="first last simple">
+<li>That none of these MMSI numbers have been used by another ship (i.e.</li>
+</ul>
+</dd>
+</dl>
+<p>another IMO number is also associated with this MMSI)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><em>valid_imos</em> &#8211; A set of valid imo numbers</li>
+<li><em>imo_mmsi_intervals</em> &#8211; A list of (mmsi, imo, start, end) tuples, describing the validity
+intervals of each (mmsi, imo) pair</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.generate_extended_table">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">generate_extended_table</code><span class="sig-paren">(</span><em>aisdb</em>, <em>intervals</em>, <em>n_threads=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#generate_extended_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.generate_extended_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.get_remaining_interval">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">get_remaining_interval</code><span class="sig-paren">(</span><em>aisdb</em>, <em>mmsi</em>, <em>imo</em>, <em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#get_remaining_interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.get_remaining_interval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.insert_message_stream">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">insert_message_stream</code><span class="sig-paren">(</span><em>aisdb</em>, <em>interval</em>, <em>msg_stream</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#insert_message_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.insert_message_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a stream of messages for an MMSI over an interval, runs it through
+outlier detection and interpolation algorithms, then inserts the resulting
+stream into the ais_extended table.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.interval_copier">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">interval_copier</code><span class="sig-paren">(</span><em>db_options</em>, <em>interval_q</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#interval_copier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.interval_copier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.process_interval_series">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">process_interval_series</code><span class="sig-paren">(</span><em>aisdb</em>, <em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#process_interval_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.process_interval_series" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.run">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">run</code><span class="sig-paren">(</span><em>inp</em>, <em>out</em>, <em>n_threads=2</em>, <em>dropindices=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.algorithms.vesselimporter.upsert_interval_to_imolist">
+<code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">upsert_interval_to_imolist</code><span class="sig-paren">(</span><em>aisdb</em>, <em>mmsi</em>, <em>imo</em>, <em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#upsert_interval_to_imolist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.upsert_interval_to_imolist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.algorithms">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyrate.algorithms" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyrate.algorithms package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyrate.algorithms.aisparser">pyrate.algorithms.aisparser module</a></li>
+<li><a class="reference internal" href="#module-pyrate.algorithms.imolist">pyrate.algorithms.imolist module</a></li>
+<li><a class="reference internal" href="#module-pyrate.algorithms.vesselimporter">pyrate.algorithms.vesselimporter module</a></li>
+<li><a class="reference internal" href="#module-pyrate.algorithms">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Modules</a><ul>
+  <li><a href="pyrate.html">pyrate package</a><ul>
+      <li>Previous: <a href="pyrate.html" title="previous chapter">pyrate package</a></li>
+      <li>Next: <a href="pyrate.repositories.html" title="next chapter">pyrate.repositories package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/pyrate.algorithms.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="../_sources/api/pyrate.algorithms.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

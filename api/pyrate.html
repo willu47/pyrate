@@ -1,0 +1,511 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate package &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../index.html" />
+    <link rel="up" title="Modules" href="modules.html" />
+    <link rel="next" title="pyrate.algorithms package" href="pyrate.algorithms.html" />
+    <link rel="prev" title="Modules" href="modules.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyrate-package">
+<h1>pyrate package<a class="headerlink" href="#pyrate-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyrate.algorithms.html">pyrate.algorithms package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.algorithms.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.algorithms.html#module-pyrate.algorithms.aisparser">pyrate.algorithms.aisparser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.algorithms.html#module-pyrate.algorithms.imolist">pyrate.algorithms.imolist module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.algorithms.html#module-pyrate.algorithms.vesselimporter">pyrate.algorithms.vesselimporter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.algorithms.html#module-pyrate.algorithms">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyrate.repositories.html">pyrate.repositories package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.repositories.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.repositories.html#module-pyrate.repositories.aisdb">pyrate.repositories.aisdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.repositories.html#module-pyrate.repositories.file">pyrate.repositories.file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.repositories.html#module-pyrate.repositories.sql">pyrate.repositories.sql module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pyrate.repositories.html#pgsqlrepository">PgsqlRepository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyrate.repositories.html#table">Table</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.repositories.html#module-pyrate.repositories">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyrate.tools.html">pyrate.tools package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.tools.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.tools.html#module-pyrate.tools.resampler">pyrate.tools.resampler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyrate.tools.html#module-pyrate.tools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyrate.cli">
+<span id="pyrate-cli-module"></span><h2>pyrate.cli module<a class="headerlink" href="#module-pyrate.cli" title="Permalink to this headline">¶</a></h2>
+<p>Provides a command line interface to the pyrate library</p>
+<p>The command line interface (CLI) expects that a configuration file named
+&#8216;aistool.conf&#8217; is located in the current folder.</p>
+<p>If the config file is not present, a runtime error is raised, and the commands
+<cite>set_default</cite> can be used to generate a default configuration file.</p>
+<dl class="function">
+<dt id="pyrate.cli.main">
+<code class="descclassname">pyrate.cli.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/cli.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.cli.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>The command line interface</p>
+<p>Type <cite>pyrate &#8211;help</cite> for help on how to use the command line interface</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.loader">
+<span id="pyrate-loader-module"></span><h2>pyrate.loader module<a class="headerlink" href="#module-pyrate.loader" title="Permalink to this headline">¶</a></h2>
+<p>This module provides the Loader class which loads a pyrate session from a
+configuation file. This session can then run tasks on data repositories and
+algorithms.</p>
+<dl class="class">
+<dt id="pyrate.loader.Loader">
+<em class="property">class </em><code class="descclassname">pyrate.loader.</code><code class="descname">Loader</code><span class="sig-paren">(</span><em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/3.5/library/functions.html#object" title="(in Python v3.5)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>The Loader joins together data repositories and algorithms,
+and executes operations on them.</p>
+<dl class="method">
+<dt id="pyrate.loader.Loader.execute_algorithm_command">
+<code class="descname">execute_algorithm_command</code><span class="sig-paren">(</span><em>algname</em>, <em>command</em>, <em>**args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.execute_algorithm_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.execute_algorithm_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the specified command on the specified algorithm</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.execute_repository_command">
+<code class="descname">execute_repository_command</code><span class="sig-paren">(</span><em>reponame</em>, <em>command</em>, <em>**args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.execute_repository_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.execute_repository_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the specified command on the specified repository.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.get_algorithm">
+<code class="descname">get_algorithm</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.get_algorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.get_algorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the algorithm module specified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.get_algorithm_commands">
+<code class="descname">get_algorithm_commands</code><span class="sig-paren">(</span><em>algname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.get_algorithm_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.get_algorithm_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of available commands for the specified algorithm</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.get_algorithms">
+<code class="descname">get_algorithms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.get_algorithms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.get_algorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of the names of available algorithms</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.get_data_repositories">
+<code class="descname">get_data_repositories</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.get_data_repositories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.get_data_repositories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of the names of available data repositories</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.get_data_repository">
+<code class="descname">get_data_repository</code><span class="sig-paren">(</span><em>name</em>, <em>readonly=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.get_data_repository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.get_data_repository" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a loaded instance of the specified data repository.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.loader.Loader.get_repository_commands">
+<code class="descname">get_repository_commands</code><span class="sig-paren">(</span><em>repo_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#Loader.get_repository_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.Loader.get_repository_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of available commands for the specified repository</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.loader.load_all_modules">
+<code class="descclassname">pyrate.loader.</code><code class="descname">load_all_modules</code><span class="sig-paren">(</span><em>paths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#load_all_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.load_all_modules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load all modules on the given paths.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.loader.load_module">
+<code class="descclassname">pyrate.loader.</code><code class="descname">load_module</code><span class="sig-paren">(</span><em>name</em>, <em>paths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/loader.html#load_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.loader.load_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load module name using the given search paths.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.utils">
+<span id="pyrate-utils-module"></span><h2>pyrate.utils module<a class="headerlink" href="#module-pyrate.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pyrate.utils.detect_location_outliers">
+<code class="descclassname">pyrate.utils.</code><code class="descname">detect_location_outliers</code><span class="sig-paren">(</span><em>msg_stream</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#detect_location_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.detect_location_outliers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detects outlier messages by submitting messages to a speed test</p>
+<p>The algorithm proceeds as follows:</p>
+<ol class="arabic">
+<li><p class="first">Create a linked list of all messages with non-null locations
+(pointing to next message)</p>
+</li>
+<li><p class="first">Loop through linked list and check for location outliers:
+* A location outlier is who does not pass the speed test (&lt;= 50kn;
+link is &#8216;discarded&#8217; when not reached in time)
+* No speed test is performed when</p>
+<blockquote>
+<div><ul>
+<li><p class="first">distance too small (&lt; 0.054nm ~ 100m; catches most positioning
+inaccuracies)</p>
+<blockquote>
+<div><p>=&gt; no outlier</p>
+</div></blockquote>
+</li>
+<li><p class="first">time gap too big (&gt;= 215h ~ 9d; time it takes to get anywhere on
+the globe at 50kn not respecting land)</p>
+<blockquote>
+<div><p>=&gt;  next message is new &#8216;start&#8217;</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>If an alledged outlier is found its link is set to be the current
+message&#8217;s link</p>
+</li>
+<li><p class="first">The start of a linked list becomes special attention: if speed check
+fails, the subsequent link is tested</p>
+</li>
+</ol>
+<p>Line of thinking is: Can I get to the next message in time? If not &#8216;next&#8217;
+must be an outlier, go to next but one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>msg_stream</strong> &#8211; A list of dictionaries representing AIS messages for a single MMSI
+number. Dictionary keys correspond to the column names from the
+<cite>ais_clean</cite> table. The list of messages should be ordered by
+timestamp in ascending order.</li>
+<li><strong>as_df</strong> (<em>bool, optional</em>) &#8211; Set to True if <cite>msg_stream</cite> are passed as a pandas DataFrame</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The rows in the message stream which are outliers</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">outlier_rows</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.interpolate_passages">
+<code class="descclassname">pyrate.utils.</code><code class="descname">interpolate_passages</code><span class="sig-paren">(</span><em>msg_stream</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#interpolate_passages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.interpolate_passages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate far apart points in an ordered stream of messages.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg_stream</strong> &#8211; A list of dictionaries representing AIS messages for a single MMSI
+number. Dictionary keys correspond to the column names from the
+<cite>ais_clean</cite> table. The list of messages should be ordered by
+timestamp in ascending order.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>artificial_messages</strong> &#8211; A list of artificial messages to fill in gaps/navigate around land.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#list" title="(in Python v3.5)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.is_valid_cog">
+<code class="descclassname">pyrate.utils.</code><code class="descname">is_valid_cog</code><span class="sig-paren">(</span><em>cog</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#is_valid_cog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.is_valid_cog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates course over ground</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cog</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><em>float</em></a>) &#8211; Course over ground</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">True if course over ground is greater than zero and less than 360 degrees</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.is_valid_heading">
+<code class="descclassname">pyrate.utils.</code><code class="descname">is_valid_heading</code><span class="sig-paren">(</span><em>heading</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#is_valid_heading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.is_valid_heading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates heading</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>heading</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><em>float</em></a>) &#8211; The heading of the ship in degrees</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">True if heading is greater than zero and less than 360 degrees</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.is_valid_sog">
+<code class="descclassname">pyrate.utils.</code><code class="descname">is_valid_sog</code><span class="sig-paren">(</span><em>sog</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#is_valid_sog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.is_valid_sog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates speed over ground</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sog</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><em>float</em></a>) &#8211; Speed over ground</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">True if speed over ground is greater than zero and less than 102.2</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.speed_calc">
+<code class="descclassname">pyrate.utils.</code><code class="descname">speed_calc</code><span class="sig-paren">(</span><em>msg_stream</em>, <em>index1</em>, <em>index2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#speed_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.speed_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the speed between two messages in the message stream</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>msg_stream</strong> &#8211; A list of dictionaries representing AIS messages for a single MMSI
+number. Dictionary keys correspond to the column names from the
+<cite>ais_clean</cite> table. The list of messages should be ordered by
+timestamp in ascending order.</li>
+<li><strong>index1</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><em>int</em></a>) &#8211; The index of the first message</li>
+<li><strong>index2</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><em>int</em></a>) &#8211; The index of the second message</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>timediff</strong> (<em>datetime</em>) &#8211; The difference in time between the two messages in datetime</li>
+<li><strong>dist</strong> (<em>float</em>) &#8211; The distance between messages in nautical miles</li>
+<li><strong>speed</strong> (<em>float</em>) &#8211; The speed in knots</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.valid_imo">
+<code class="descclassname">pyrate.utils.</code><code class="descname">valid_imo</code><span class="sig-paren">(</span><em>imo=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#valid_imo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.valid_imo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check valid IMO using checksum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>imo</strong> (<em>integer</em>) &#8211; An IMO ship identifier</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">True if the IMO number is valid</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Taken from Eoin O&#8217;Keeffe&#8217;s <cite>checksum_valid</cite> function in pyAIS</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.valid_latitude">
+<code class="descclassname">pyrate.utils.</code><code class="descname">valid_latitude</code><span class="sig-paren">(</span><em>lat</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#valid_latitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.valid_latitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check valid latitude.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lon</strong> (<em>integer</em>) &#8211; A latitude</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">True if the latitude is valid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.valid_longitude">
+<code class="descclassname">pyrate.utils.</code><code class="descname">valid_longitude</code><span class="sig-paren">(</span><em>lon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#valid_longitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.valid_longitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check valid longitude.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lon</strong> (<em>integer</em>) &#8211; A longitude</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">True if the longitude is valid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.valid_message_id">
+<code class="descclassname">pyrate.utils.</code><code class="descname">valid_message_id</code><span class="sig-paren">(</span><em>message_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#valid_message_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.valid_message_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.valid_mmsi">
+<code class="descclassname">pyrate.utils.</code><code class="descname">valid_mmsi</code><span class="sig-paren">(</span><em>mmsi</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#valid_mmsi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.valid_mmsi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a given MMSI number is valid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mmsi</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><em>int</em></a>) &#8211; An MMSI number</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Returns True if the MMSI number is 9 digits long.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.utils.valid_navigational_status">
+<code class="descclassname">pyrate.utils.</code><code class="descname">valid_navigational_status</code><span class="sig-paren">(</span><em>status</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/utils.html#valid_navigational_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.utils.valid_navigational_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyrate">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyrate" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pyrate.get_resource_filename">
+<code class="descclassname">pyrate.</code><code class="descname">get_resource_filename</code><span class="sig-paren">(</span><em>resource_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate.html#get_resource_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.get_resource_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the absolute path associated with the file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; The expected file path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>path</strong> &#8211; The absolute file path</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyrate package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyrate.cli">pyrate.cli module</a></li>
+<li><a class="reference internal" href="#module-pyrate.loader">pyrate.loader module</a></li>
+<li><a class="reference internal" href="#module-pyrate.utils">pyrate.utils module</a></li>
+<li><a class="reference internal" href="#module-pyrate">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Modules</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">Modules</a></li>
+      <li>Next: <a href="pyrate.algorithms.html" title="next chapter">pyrate.algorithms package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/pyrate.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="../_sources/api/pyrate.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

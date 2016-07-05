@@ -1,0 +1,360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.repositories package &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../index.html" />
+    <link rel="up" title="pyrate package" href="pyrate.html" />
+    <link rel="next" title="pyrate.tools package" href="pyrate.tools.html" />
+    <link rel="prev" title="pyrate.algorithms package" href="pyrate.algorithms.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyrate-repositories-package">
+<h1>pyrate.repositories package<a class="headerlink" href="#pyrate-repositories-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyrate.repositories.aisdb">
+<span id="pyrate-repositories-aisdb-module"></span><h2>pyrate.repositories.aisdb module<a class="headerlink" href="#module-pyrate.repositories.aisdb" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyrate.repositories.aisdb.AISExtendedTable">
+<em class="property">class </em><code class="descclassname">pyrate.repositories.aisdb.</code><code class="descname">AISExtendedTable</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISExtendedTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISExtendedTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyrate.repositories.sql.Table" title="pyrate.repositories.sql.Table"><code class="xref py py-class docutils literal"><span class="pre">pyrate.repositories.sql.Table</span></code></a></p>
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISExtendedTable.create">
+<code class="descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISExtendedTable.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISExtendedTable.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISExtendedTable.create_indices">
+<code class="descname">create_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISExtendedTable.create_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISExtendedTable.create_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISExtendedTable.drop_indices">
+<code class="descname">drop_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISExtendedTable.drop_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISExtendedTable.drop_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyrate.repositories.aisdb.AISdb">
+<em class="property">class </em><code class="descclassname">pyrate.repositories.aisdb.</code><code class="descname">AISdb</code><span class="sig-paren">(</span><em>options</em>, <em>readonly=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyrate.repositories.sql.PgsqlRepository" title="pyrate.repositories.sql.PgsqlRepository"><code class="xref py py-class docutils literal"><span class="pre">pyrate.repositories.sql.PgsqlRepository</span></code></a></p>
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.action_log_spec">
+<code class="descname">action_log_spec</code><em class="property"> = {'cols': [('timestamp', 'timestamp without time zone DEFAULT now()'), ('action', 'TEXT'), ('mmsi', 'integer NOT NULL'), ('ts_from', 'timestamp without time zone'), ('ts_to', 'timestamp without time zone'), ('count', 'integer NULL')], 'indices': [('ts_idx', ['timestamp']), ('action_idx', ['action']), ('mmsi_idx', ['mmsi'])], 'constraint': ['CONSTRAINT action_log_pkey PRIMARY KEY (timestamp, action, mmsi)']}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.action_log_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.clean_db_spec">
+<code class="descname">clean_db_spec</code><em class="property"> = {'cols': [('MMSI', 'integer'), ('Time', 'timestamp without time zone'), ('Message_ID', 'integer'), ('Navigational_status', 'integer'), ('SOG', 'double precision'), ('Longitude', 'double precision'), ('Latitude', 'double precision'), ('COG', 'double precision'), ('Heading', 'double precision'), ('IMO', 'integer null'), ('Draught', 'double precision'), ('Destination', 'character varying(255)'), ('Vessel_Name', 'character varying(255)'), ('ETA_month', 'integer'), ('ETA_day', 'integer'), ('ETA_hour', 'integer'), ('ETA_minute', 'integer'), ('source', 'smallint'), ('ID', 'SERIAL PRIMARY KEY')], 'indices': [('dt_idx', ['Time']), ('imo_idx', ['IMO']), ('lonlat_idx', ['Longitude', 'Latitude']), ('mmsi_idx', ['MMSI']), ('msg_idx', ['Message_ID']), ('source_idx', ['source']), ('mmsi_imo_idx', ['MMSI', 'IMO'])]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.clean_db_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.clean_imo_list">
+<code class="descname">clean_imo_list</code><em class="property"> = {'cols': [('mmsi', 'integer NOT NULL'), ('imo', 'integer NULL'), ('first_seen', 'timestamp without time zone'), ('last_seen', 'timestamp without time zone')], 'constraint': ['CONSTRAINT imo_list_pkey PRIMARY KEY (mmsi, imo)']}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.clean_imo_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.create">
+<code class="descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the tables for the AIS data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.dirty_db_spec">
+<code class="descname">dirty_db_spec</code><em class="property"> = {'cols': [('MMSI', 'bigint'), ('Time', 'timestamp without time zone'), ('Message_ID', 'integer'), ('Navigational_status', 'integer'), ('SOG', 'double precision'), ('Longitude', 'double precision'), ('Latitude', 'double precision'), ('COG', 'double precision'), ('Heading', 'double precision'), ('IMO', 'integer null'), ('Draught', 'double precision'), ('Destination', 'character varying(255)'), ('Vessel_Name', 'character varying(255)'), ('ETA_month', 'integer'), ('ETA_day', 'integer'), ('ETA_hour', 'integer'), ('ETA_minute', 'integer'), ('source', 'smallint'), ('ID', 'SERIAL PRIMARY KEY')], 'indices': [('dt_idx', ['Time']), ('imo_idx', ['IMO']), ('lonlat_idx', ['Longitude', 'Latitude']), ('mmsi_idx', ['MMSI']), ('msg_idx', ['Message_ID']), ('source_idx', ['source']), ('mmsi_imo_idx', ['MMSI', 'IMO'])]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.dirty_db_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.double_type">
+<code class="descname">double_type</code><em class="property"> = 'double precision'</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.double_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.get_message_stream">
+<code class="descname">get_message_stream</code><span class="sig-paren">(</span><em>mmsi</em>, <em>from_ts=None</em>, <em>to_ts=None</em>, <em>use_clean_db=False</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.get_message_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.get_message_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the stream of messages for the given mmsi, ordered by timestamp ascending</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.get_messages_for_vessel">
+<code class="descname">get_messages_for_vessel</code><span class="sig-paren">(</span><em>imo</em>, <em>from_ts=None</em>, <em>to_ts=None</em>, <em>use_clean_db=False</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.get_messages_for_vessel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.get_messages_for_vessel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.imolist_db_spec">
+<code class="descname">imolist_db_spec</code><em class="property"> = {'cols': [('mmsi', 'integer NOT NULL'), ('imo', 'integer NULL'), ('first_seen', 'timestamp without time zone'), ('last_seen', 'timestamp without time zone')], 'constraint': ['CONSTRAINT imo_list_key UNIQUE (mmsi, imo)']}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.imolist_db_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.ship_info">
+<code class="descname">ship_info</code><span class="sig-paren">(</span><em>imo</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.ship_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.ship_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyrate.repositories.aisdb.AISdb.sources_db_spec">
+<code class="descname">sources_db_spec</code><em class="property"> = {'cols': [('ID', 'SERIAL PRIMARY KEY'), ('timestamp', 'timestamp without time zone DEFAULT now()'), ('filename', 'TEXT'), ('ext', 'TEXT'), ('invalid', 'integer'), ('clean', 'integer'), ('dirty', 'integer'), ('source', 'integer')]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.sources_db_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.status">
+<code class="descname">status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.truncate">
+<code class="descname">truncate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all data in the AIS table.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.repositories.aisdb.load">
+<code class="descclassname">pyrate.repositories.aisdb.</code><code class="descname">load</code><span class="sig-paren">(</span><em>options</em>, <em>readonly=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.repositories.file">
+<span id="pyrate-repositories-file-module"></span><h2>pyrate.repositories.file module<a class="headerlink" href="#module-pyrate.repositories.file" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyrate.repositories.file.FileRepository">
+<em class="property">class </em><code class="descclassname">pyrate.repositories.file.</code><code class="descname">FileRepository</code><span class="sig-paren">(</span><em>path</em>, <em>allowedExtensions=None</em>, <em>recursive=True</em>, <em>unzip=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/file.html#FileRepository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.file.FileRepository" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/3.5/library/functions.html#object" title="(in Python v3.5)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pyrate.repositories.file.FileRepository.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/file.html#FileRepository.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.file.FileRepository.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.file.FileRepository.iterfiles">
+<code class="descname">iterfiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/file.html#FileRepository.iterfiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.file.FileRepository.iterfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate files in this file repository. Returns a generator of 3-tuples,
+containing a handle, filename and file extension of the current opened file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.file.FileRepository.status">
+<code class="descname">status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/file.html#FileRepository.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.file.FileRepository.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.repositories.file.load">
+<code class="descclassname">pyrate.repositories.file.</code><code class="descname">load</code><span class="sig-paren">(</span><em>options</em>, <em>readonly=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/file.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.file.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.repositories.sql">
+<span id="pyrate-repositories-sql-module"></span><h2>pyrate.repositories.sql module<a class="headerlink" href="#module-pyrate.repositories.sql" title="Permalink to this headline">¶</a></h2>
+<p>Classes for connection to and management of database tables</p>
+<div class="section" id="pgsqlrepository">
+<h3>PgsqlRepository<a class="headerlink" href="#pgsqlrepository" title="Permalink to this headline">¶</a></h3>
+<p>Sets up a connection to a pyrate database repository</p>
+</div>
+<div class="section" id="table">
+<h3>Table<a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h3>
+<p>Used to encapsulate a pyrate database table</p>
+<dl class="class">
+<dt id="pyrate.repositories.sql.PgsqlRepository">
+<em class="property">class </em><code class="descclassname">pyrate.repositories.sql.</code><code class="descname">PgsqlRepository</code><span class="sig-paren">(</span><em>options</em>, <em>readonly=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#PgsqlRepository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.PgsqlRepository" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/3.5/library/functions.html#object" title="(in Python v3.5)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pyrate.repositories.sql.PgsqlRepository.connection">
+<code class="descname">connection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#PgsqlRepository.connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.PgsqlRepository.connection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyrate.repositories.sql.Table">
+<em class="property">class </em><code class="descclassname">pyrate.repositories.sql.</code><code class="descname">Table</code><span class="sig-paren">(</span><em>db</em>, <em>name</em>, <em>cols</em>, <em>indices=None</em>, <em>constraint=None</em>, <em>foreign_keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/3.5/library/functions.html#object" title="(in Python v3.5)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>A database table</p>
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.copy_from_file">
+<code class="descname">copy_from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>columns</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.copy_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.copy_from_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.create">
+<code class="descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates tables in the database</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.create_indices">
+<code class="descname">create_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.create_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.create_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.drop_indices">
+<code class="descname">drop_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.drop_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.drop_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.insert_row">
+<code class="descname">insert_row</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.insert_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.insert_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts one row into the table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.insert_rows_batch">
+<code class="descname">insert_rows_batch</code><span class="sig-paren">(</span><em>rows</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.insert_rows_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.insert_rows_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts a number of rows into the table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rows</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#list" title="(in Python v3.5)"><em>list</em></a>) &#8211; A list of dicts of (column, value) pairs</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.status">
+<code class="descname">status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the approximate number of records in the table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">integer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.sql.Table.truncate">
+<code class="descname">truncate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#Table.truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.Table.truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all data in the table.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyrate.repositories.sql.load">
+<code class="descclassname">pyrate.repositories.sql.</code><code class="descname">load</code><span class="sig-paren">(</span><em>options</em>, <em>readonly=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/sql.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.sql.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-pyrate.repositories">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyrate.repositories" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyrate.repositories package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyrate.repositories.aisdb">pyrate.repositories.aisdb module</a></li>
+<li><a class="reference internal" href="#module-pyrate.repositories.file">pyrate.repositories.file module</a></li>
+<li><a class="reference internal" href="#module-pyrate.repositories.sql">pyrate.repositories.sql module</a><ul>
+<li><a class="reference internal" href="#pgsqlrepository">PgsqlRepository</a></li>
+<li><a class="reference internal" href="#table">Table</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyrate.repositories">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Modules</a><ul>
+  <li><a href="pyrate.html">pyrate package</a><ul>
+      <li>Previous: <a href="pyrate.algorithms.html" title="previous chapter">pyrate.algorithms package</a></li>
+      <li>Next: <a href="pyrate.tools.html" title="next chapter">pyrate.tools package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/pyrate.repositories.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="../_sources/api/pyrate.repositories.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

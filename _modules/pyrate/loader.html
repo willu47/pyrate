@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.loader &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../index.html" />
+    <link rel="up" title="pyrate" href="../pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyrate.loader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module provides the Loader class which loads a pyrate session from a</span>
+<span class="sd">configuation file. This session can then run tasks on data repositories and</span>
+<span class="sd">algorithms.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">imp</span>
+<span class="kn">import</span> <span class="nn">pkgutil</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">from</span> <span class="nn">configparser</span> <span class="kn">import</span> <span class="n">ConfigParser</span>
+<span class="kn">from</span> <span class="nn">pyrate</span> <span class="kn">import</span> <span class="n">get_resource_filename</span>
+
+<div class="viewcode-block" id="load_module"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.load_module">[docs]</a><span class="k">def</span> <span class="nf">load_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load module name using the given search paths.&quot;&quot;&quot;</span>
+    <span class="n">handle</span><span class="p">,</span> <span class="n">pathname</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">find_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">paths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">handle</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">pathname</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="load_all_modules"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.load_all_modules">[docs]</a><span class="k">def</span> <span class="nf">load_all_modules</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load all modules on the given paths.&quot;&quot;&quot;</span>
+    <span class="n">modules</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">walk_packages</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">paths</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error importing module &quot;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span><span class="s2">&quot;: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">modules</span></div>
+
+
+<div class="viewcode-block" id="Loader"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader">[docs]</a><span class="k">class</span> <span class="nc">Loader</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The Loader joins together data repositories and algorithms,</span>
+<span class="sd">    and executes operations on them.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c1"># load from file if path provided</span>
+        <span class="n">loaded_conf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No config file defined.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">loaded_conf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="n">loaded_conf</span>
+
+        <span class="k">if</span> <span class="s1">&#39;globals&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">repopaths</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;globals&#39;</span><span class="p">,</span> <span class="s1">&#39;repos&#39;</span><span class="p">))</span>
+            <span class="n">repopaths</span> <span class="o">=</span> <span class="n">repopaths</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">repopaths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">get_resource_filename</span><span class="p">(</span><span class="s1">&#39;repositories&#39;</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">repopaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_resource_filename</span><span class="p">(</span><span class="s1">&#39;repositories&#39;</span><span class="p">)]</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Paths to repositories: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">repopaths</span><span class="p">))</span>
+
+        <span class="c1"># load repo drivers from repopaths</span>
+        <span class="n">repo_drivers</span> <span class="o">=</span> <span class="n">load_all_modules</span><span class="p">(</span><span class="n">repopaths</span><span class="p">)</span>
+
+        <span class="c1"># get repo configurations from config</span>
+        <span class="k">if</span> <span class="s1">&#39;globals&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">repo_config</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;globals&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">repo_config</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">())</span>
+
+
+        <span class="c1"># check which repos we have drivers for</span>
+        <span class="n">repo_conf_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">repo_name</span> <span class="ow">in</span> <span class="n">repo_config</span><span class="p">:</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">repo_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Repository &quot;</span><span class="o">+</span> <span class="n">repo_name</span> <span class="o">+</span><span class="s2">&quot; does not specify a type in the config file.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">conf</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">repo_drivers</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Driver of type &quot;</span><span class="o">+</span> <span class="n">conf</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">+</span><span class="s2">&quot; for repository &quot;</span><span class="o">+</span> <span class="n">repo_name</span> <span class="o">+</span><span class="s2">&quot; not found.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">repo_conf_dict</span><span class="p">[</span><span class="n">repo_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">conf</span>
+
+        <span class="k">if</span> <span class="s1">&#39;globals&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">algopaths</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;globals&#39;</span><span class="p">,</span> <span class="s1">&#39;algos&#39;</span><span class="p">))</span>
+            <span class="n">algopaths</span> <span class="o">=</span> <span class="n">algopaths</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">algopaths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">get_resource_filename</span><span class="p">(</span><span class="s1">&#39;algorithms&#39;</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">algopaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_resource_filename</span><span class="p">(</span><span class="s1">&#39;algorithms&#39;</span><span class="p">)]</span>
+
+        <span class="c1"># load algorithms from algopaths</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Paths to algorithms: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algopaths</span><span class="p">))</span>
+        <span class="n">algorithms</span> <span class="o">=</span> <span class="n">load_all_modules</span><span class="p">(</span><span class="n">algopaths</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">repo_drivers</span> <span class="o">=</span> <span class="n">repo_drivers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repo_config</span> <span class="o">=</span> <span class="n">repo_conf_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span> <span class="o">=</span> <span class="n">algorithms</span>
+
+<div class="viewcode-block" id="Loader.get_data_repositories"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.get_data_repositories">[docs]</a>    <span class="k">def</span> <span class="nf">get_data_repositories</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a set of the names of available data repositories&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">repo_config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Loader.get_repository_commands"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.get_repository_commands">[docs]</a>    <span class="k">def</span> <span class="nf">get_repository_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repo_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list of available commands for the specified repository&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">repo_drivers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">repo_config</span><span class="p">[</span><span class="n">repo_name</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">EXPORT_COMMANDS</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Loader.get_algorithm_commands"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.get_algorithm_commands">[docs]</a>    <span class="k">def</span> <span class="nf">get_algorithm_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list of available commands for the specified algorithm&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">[</span><span class="n">algname</span><span class="p">]</span><span class="o">.</span><span class="n">EXPORT_COMMANDS</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Loader.get_algorithms"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.get_algorithms">[docs]</a>    <span class="k">def</span> <span class="nf">get_algorithms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a set of the names of available algorithms&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Loader.execute_repository_command"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.execute_repository_command">[docs]</a>    <span class="k">def</span> <span class="nf">execute_repository_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reponame</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute the specified command on the specified repository.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_repository_commands</span><span class="p">(</span><span class="n">reponame</span><span class="p">)]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid command {} for repository {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">reponame</span><span class="p">))</span>
+        <span class="c1"># load repostory class</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_repository</span><span class="p">(</span><span class="n">reponame</span><span class="p">)</span>
+        <span class="n">fns</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">ismethod</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="n">command</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fns</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to find method {} in repository {}: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">reponame</span><span class="p">,</span> <span class="n">repo</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">repo</span><span class="p">:</span>
+            <span class="c1"># call command</span>
+            <span class="n">fns</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="o">**</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Loader.execute_algorithm_command"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.execute_algorithm_command">[docs]</a>    <span class="k">def</span> <span class="nf">execute_algorithm_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algname</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute the specified command on the specified algorithm&quot;&quot;&quot;</span>
+        <span class="n">alg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_algorithm</span><span class="p">(</span><span class="n">algname</span><span class="p">)</span>
+        <span class="n">fns</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">alg</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="n">command</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fns</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to find function {} in algorithm {}: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">algname</span><span class="p">,</span> <span class="n">alg</span><span class="p">))</span>
+
+        <span class="c1"># get inputs and outputs</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">INPUTS</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">[</span><span class="n">inp</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_repository</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">alg</span><span class="o">.</span><span class="n">OUTPUTS</span><span class="p">:</span>
+            <span class="n">outputs</span><span class="p">[</span><span class="n">out</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_repository</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">ExitStack</span><span class="p">()</span> <span class="k">as</span> <span class="n">stack</span><span class="p">:</span>
+            <span class="c1"># prepare repositories</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">fns</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Loader.get_data_repository"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.get_data_repository">[docs]</a>    <span class="k">def</span> <span class="nf">get_data_repository</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a loaded instance of the specified data repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">repo_drivers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">repo_config</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">repo_config</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Loader.get_algorithm"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.loader.Loader.get_algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">get_algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the algorithm module specified.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pyrate.html">pyrate</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

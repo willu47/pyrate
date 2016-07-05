@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.algorithms.imolist &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../../index.html" />
+    <link rel="up" title="pyrate" href="../../pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyrate.algorithms.imolist</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="n">EXPORT_COMMANDS</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;run&#39;</span><span class="p">,</span> <span class="s1">&#39;create or update the imo list table.&#39;</span><span class="p">)]</span>
+<span class="n">INPUTS</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">OUTPUTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aisdb&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.imolist.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+    <span class="n">create_imo_list</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;aisdb&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="create_imo_list"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.imolist.create_imo_list">[docs]</a><span class="k">def</span> <span class="nf">create_imo_list</span><span class="p">(</span><span class="n">aisdb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the imo list table from MMSI, IMO pairs in clean and dirty tables.</span>
+
+<span class="sd">    This method collects the unique MMSI, IMO pairs from a table, and the time</span>
+<span class="sd">    intervals over-which they have been seen in the data. These tuples are</span>
+<span class="sd">    then upserted into the `imo_list` table.</span>
+
+<span class="sd">    Removes cases where ships have clashing MMSI numbers within a time threshold.</span>
+
+<span class="sd">    On the clean table pairs with no IMO number are also collected to get the</span>
+<span class="sd">    activity intervals of MMSI numbers. On the dirty table only messages</span>
+<span class="sd">    specifying an IMO are collected.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    aisdb : postgresdb</span>
+<span class="sd">        The database upon which to operate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># collect existing set of mmsi, imo tuples in imo_list</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT mmsi, imo FROM {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">imolist</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
+        <span class="n">existing_tuples</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Existing mmsi, imo pairs = </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%f</span><span class="s2">s)&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">existing_tuples</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+
+        <span class="c1"># query for mmsi, imo, interval tuples from clean db, and then upsert into</span>
+        <span class="c1"># imo_list table.</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting mmsi, imo pairs from clean db&quot;</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT mmsi, imo, MIN(time), MAX(time) FROM {} GROUP BY mmsi, imo&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">clean</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got new mmsi, imo pairs list (</span><span class="si">%f</span><span class="s2">s)&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">_upsert_imo_tuples</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">existing_tuples</span><span class="p">)</span>
+
+        <span class="c1"># query for mmsi, imo, interval tuples from dirty db, and then upsert into</span>
+        <span class="c1"># imo_list table.</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting mmsi, imo pairs from dirty db&quot;</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT mmsi, imo, MIN(time), MAX(time) FROM {} WHERE message_id = 5 GROUP BY mmsi, imo&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">dirty</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got new mmsi, imo pairs list (</span><span class="si">%f</span><span class="s2">s)&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">_upsert_imo_tuples</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">existing_tuples</span><span class="p">)</span>
+
+        <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+<span class="k">def</span> <span class="nf">_upsert_imo_tuples</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">result_cursor</span><span class="p">,</span> <span class="n">existing_tuples</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inserts or updates rows in the imo_list table depending on the mmsi, imo</span>
+<span class="sd">    pair&#39;s presence in the table.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    result_cursor :</span>
+<span class="sd">        An iterator of (mmsi, imo, start, end) tuples.</span>
+<span class="sd">    existing_tuples :</span>
+<span class="sd">        A set of (mmsi, imo) pairs which should be updated rather than inserted.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">insert_cur</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">insert_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">update_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">min_time</span><span class="p">,</span> <span class="n">max_time</span> <span class="ow">in</span> <span class="n">result_cursor</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">)</span> <span class="ow">in</span> <span class="n">existing_tuples</span><span class="p">:</span>
+                <span class="n">insert_cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;UPDATE {} SET</span>
+<span class="s2">                    first_seen = LEAST(first_seen, </span><span class="si">%s</span><span class="s2">),</span>
+<span class="s2">                    last_seen = GREATEST(last_seen, </span><span class="si">%s</span><span class="s2">)</span>
+<span class="s2">                    WHERE mmsi = </span><span class="si">%s</span><span class="s2"> AND imo = </span><span class="si">%s</span><span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">imolist</span><span class="o">.</span><span class="n">get_name</span><span class="p">()),</span> <span class="p">[</span><span class="n">min_time</span><span class="p">,</span> <span class="n">max_time</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">])</span>
+                <span class="n">update_ctr</span> <span class="o">=</span> <span class="n">update_ctr</span> <span class="o">+</span> <span class="n">insert_cur</span><span class="o">.</span><span class="n">rowcount</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">insert_cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO {} (mmsi, imo, first_seen, last_seen) VALUES (</span><span class="si">%s</span><span class="s2">,</span><span class="si">%s</span><span class="s2">,</span><span class="si">%s</span><span class="s2">,</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">imolist</span><span class="o">.</span><span class="n">get_name</span><span class="p">()),</span> <span class="p">[</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">min_time</span><span class="p">,</span> <span class="n">max_time</span><span class="p">])</span>
+                <span class="n">insert_ctr</span> <span class="o">=</span> <span class="n">insert_ctr</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserted </span><span class="si">%d</span><span class="s2"> new rows, updated </span><span class="si">%d</span><span class="s2"> rows (</span><span class="si">%f</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">insert_ctr</span><span class="p">,</span> <span class="n">update_ctr</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../pyrate.html">pyrate</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

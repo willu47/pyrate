@@ -1,0 +1,579 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.algorithms.aisparser &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../../index.html" />
+    <link rel="up" title="pyrate" href="../../pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyrate.algorithms.aisparser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Parses the AIS data from csv of xml files and populates the AIS database</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">xml.etree</span> <span class="kn">import</span> <span class="n">ElementTree</span>
+<span class="kn">from</span> <span class="nn">pyrate</span> <span class="kn">import</span> <span class="n">utils</span>
+
+<span class="n">EXPORT_COMMANDS</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;run&#39;</span><span class="p">,</span> <span class="s1">&#39;parse messages from csv into the database.&#39;</span><span class="p">)]</span>
+<span class="c1"># Repository used for input to the algorithm</span>
+<span class="n">INPUTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aiscsv&quot;</span><span class="p">]</span>
+<span class="c1"># Repositories used for output from the algorithm</span>
+<span class="n">OUTPUTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aisdb&quot;</span><span class="p">,</span> <span class="s2">&quot;baddata&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="parse_timestamp"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.parse_timestamp">[docs]</a><span class="k">def</span> <span class="nf">parse_timestamp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H%M%S&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="int_or_null"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.int_or_null">[docs]</a><span class="k">def</span> <span class="nf">int_or_null</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="float_or_null"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.float_or_null">[docs]</a><span class="k">def</span> <span class="nf">float_or_null</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="imostr"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.imostr">[docs]</a><span class="k">def</span> <span class="nf">imostr</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="longstr"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.longstr">[docs]</a><span class="k">def</span> <span class="nf">longstr</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">254</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="set_null_on_fail"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.set_null_on_fail">[docs]</a><span class="k">def</span> <span class="nf">set_null_on_fail</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">test</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Helper function which sets the column in a row of data to null on fail</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    row : dict</span>
+<span class="sd">        A dictionary of the fields</span>
+<span class="sd">    col : str</span>
+<span class="sd">        The column to check</span>
+<span class="sd">    test : func</span>
+<span class="sd">        One of the validation functions in pyrate.utils</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">test</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+        <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="check_imo"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.check_imo">[docs]</a><span class="k">def</span> <span class="nf">check_imo</span><span class="p">(</span><span class="n">imo</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">imo</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">utils</span><span class="o">.</span><span class="n">valid_imo</span><span class="p">(</span><span class="n">imo</span><span class="p">)</span></div>
+
+<span class="c1"># column name constants</span>
+<span class="n">MMSI</span> <span class="o">=</span> <span class="s1">&#39;MMSI&#39;</span>
+<span class="n">TIME</span> <span class="o">=</span> <span class="s1">&#39;Time&#39;</span>
+<span class="n">MESSAGE_ID</span> <span class="o">=</span> <span class="s1">&#39;Message_ID&#39;</span>
+<span class="n">NAV_STATUS</span> <span class="o">=</span> <span class="s1">&#39;Navigational_status&#39;</span>
+<span class="n">SOG</span> <span class="o">=</span> <span class="s1">&#39;SOG&#39;</span>
+<span class="n">LONGITUDE</span> <span class="o">=</span> <span class="s1">&#39;Longitude&#39;</span>
+<span class="n">LATITUDE</span> <span class="o">=</span> <span class="s1">&#39;Latitude&#39;</span>
+<span class="n">COG</span> <span class="o">=</span> <span class="s1">&#39;COG&#39;</span>
+<span class="n">HEADING</span> <span class="o">=</span> <span class="s1">&#39;Heading&#39;</span>
+<span class="n">IMO</span> <span class="o">=</span> <span class="s1">&#39;IMO&#39;</span>
+<span class="n">DRAUGHT</span> <span class="o">=</span> <span class="s1">&#39;Draught&#39;</span>
+<span class="n">DEST</span> <span class="o">=</span> <span class="s1">&#39;Destination&#39;</span>
+<span class="n">VESSEL_NAME</span> <span class="o">=</span> <span class="s1">&#39;Vessel_Name&#39;</span>
+<span class="n">ETA_MONTH</span> <span class="o">=</span> <span class="s1">&#39;ETA_month&#39;</span>
+<span class="n">ETA_DAY</span> <span class="o">=</span> <span class="s1">&#39;ETA_day&#39;</span>
+<span class="n">ETA_HOUR</span> <span class="o">=</span> <span class="s1">&#39;ETA_hour&#39;</span>
+<span class="n">ETA_MINUTE</span> <span class="o">=</span> <span class="s1">&#39;ETA_minute&#39;</span>
+
+<span class="c1"># specifies columns to take from raw data, and functions to convert them into</span>
+<span class="c1"># suitable type for the database.</span>
+<span class="n">AIS_CSV_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="n">MMSI</span><span class="p">,</span>
+                   <span class="n">TIME</span><span class="p">,</span>
+                   <span class="n">MESSAGE_ID</span><span class="p">,</span>
+                   <span class="n">NAV_STATUS</span><span class="p">,</span>
+                   <span class="n">SOG</span><span class="p">,</span>
+                   <span class="n">LONGITUDE</span><span class="p">,</span>
+                   <span class="n">LATITUDE</span><span class="p">,</span>
+                   <span class="n">COG</span><span class="p">,</span>
+                   <span class="n">HEADING</span><span class="p">,</span>
+                   <span class="n">IMO</span><span class="p">,</span>
+                   <span class="n">DRAUGHT</span><span class="p">,</span>
+                   <span class="n">DEST</span><span class="p">,</span>
+                   <span class="n">VESSEL_NAME</span><span class="p">,</span>
+                   <span class="n">ETA_MONTH</span><span class="p">,</span>
+                   <span class="n">ETA_DAY</span><span class="p">,</span>
+                   <span class="n">ETA_HOUR</span><span class="p">,</span>
+                   <span class="n">ETA_MINUTE</span><span class="p">]</span>
+
+<span class="c1"># xml names differ from csv. This array describes the names in this file which</span>
+<span class="c1"># correspond to the csv column names</span>
+<span class="n">AIS_XML_COLNAMES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;mmsi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;date_time&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;msg_type&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nav_status&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sog&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lon&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cog&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;heading&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;imo&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;draught&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;destination&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;vessel_name&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eta_month&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eta_day&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eta_hour&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eta_minute&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="xml_name_to_csv"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.xml_name_to_csv">[docs]</a><span class="k">def</span> <span class="nf">xml_name_to_csv</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts a tag name from an XML file to the corresponding name from CSV.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">AIS_CSV_COLUMNS</span><span class="p">[</span><span class="n">AIS_XML_COLNAMES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="parse_raw_row"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.parse_raw_row">[docs]</a><span class="k">def</span> <span class="nf">parse_raw_row</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse values from row, returning a new dict with converted values</span>
+
+<span class="sd">    Parse values from row, returning a new dict with converted values</span>
+<span class="sd">    converted into appropriate types. Throw an exception to reject row</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    row : dict</span>
+<span class="sd">        A dictionary of headers and values from the csv file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    converted_row : dict</span>
+<span class="sd">        A dictionary of headers and values converted using the helper functions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">converted_row</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">MMSI</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">MMSI</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">TIME</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_timestamp</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">TIME</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">MESSAGE_ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">MESSAGE_ID</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">NAV_STATUS</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">NAV_STATUS</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">SOG</span><span class="p">]</span> <span class="o">=</span> <span class="n">float_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">SOG</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">LONGITUDE</span><span class="p">]</span> <span class="o">=</span> <span class="n">float_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">LONGITUDE</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">LATITUDE</span><span class="p">]</span> <span class="o">=</span> <span class="n">float_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">LATITUDE</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">COG</span><span class="p">]</span> <span class="o">=</span> <span class="n">float_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">COG</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">HEADING</span><span class="p">]</span> <span class="o">=</span> <span class="n">float_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">HEADING</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">IMO</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">IMO</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">DRAUGHT</span><span class="p">]</span> <span class="o">=</span> <span class="n">float_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">DRAUGHT</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">DEST</span><span class="p">]</span> <span class="o">=</span> <span class="n">longstr</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">DEST</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">VESSEL_NAME</span><span class="p">]</span> <span class="o">=</span> <span class="n">longstr</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">VESSEL_NAME</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">ETA_MONTH</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">ETA_MONTH</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">ETA_DAY</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">ETA_DAY</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">ETA_HOUR</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">ETA_HOUR</span><span class="p">])</span>
+    <span class="n">converted_row</span><span class="p">[</span><span class="n">ETA_MINUTE</span><span class="p">]</span> <span class="o">=</span> <span class="n">int_or_null</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">ETA_MINUTE</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">converted_row</span></div>
+
+<span class="n">CONTAINS_LAT_LON</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">27</span><span class="p">])</span>
+
+<div class="viewcode-block" id="validate_row"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.validate_row">[docs]</a><span class="k">def</span> <span class="nf">validate_row</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+    <span class="c1"># validate MMSI, message_id and IMO</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">valid_mmsi</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">MMSI</span><span class="p">])</span> \
+       <span class="ow">or</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">valid_message_id</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">MESSAGE_ID</span><span class="p">])</span> \
+       <span class="ow">or</span> <span class="ow">not</span> <span class="n">check_imo</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">IMO</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Row invalid&quot;</span><span class="p">)</span>
+    <span class="c1"># check lat long for messages which should contain it</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">MESSAGE_ID</span><span class="p">]</span> <span class="ow">in</span> <span class="n">CONTAINS_LAT_LON</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">valid_longitude</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">LONGITUDE</span><span class="p">])</span> <span class="ow">and</span> \
+           <span class="n">utils</span><span class="o">.</span><span class="n">valid_latitude</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">LATITUDE</span><span class="p">])):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Row invalid (lat,lon)&quot;</span><span class="p">)</span>
+    <span class="c1"># otherwise set them to None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">row</span><span class="p">[</span><span class="n">LONGITUDE</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">row</span><span class="p">[</span><span class="n">LATITUDE</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c1"># validate other columns</span>
+    <span class="n">set_null_on_fail</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">NAV_STATUS</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">valid_navigational_status</span><span class="p">)</span>
+    <span class="n">set_null_on_fail</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">SOG</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_valid_sog</span><span class="p">)</span>
+    <span class="n">set_null_on_fail</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">COG</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_valid_cog</span><span class="p">)</span>
+    <span class="n">set_null_on_fail</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">HEADING</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_valid_heading</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">row</span></div>
+
+<div class="viewcode-block" id="get_data_source"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.get_data_source">[docs]</a><span class="k">def</span> <span class="nf">get_data_source</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Guesses data source from file name.</span>
+
+<span class="sd">    If the name contains &#39;terr&#39; then we guess terrestrial data,</span>
+<span class="sd">    otherwise we assume satellite.</span>
+
+<span class="sd">    Argument</span>
+<span class="sd">    --------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        File name</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        0 if satellite, 1 if terrestrial</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;terr&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># terrestrial</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># assume satellite</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">dropindices</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Populate the AIS_Raw database with messages from the AIS csv files</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    inp : str</span>
+<span class="sd">        The name of the repositor(-y/-ies) as defined in the global variable</span>
+<span class="sd">        `INPUTS`</span>
+<span class="sd">    out : str</span>
+<span class="sd">        The name of the repositor(-y/-ies) as defined in the global variable</span>
+<span class="sd">        `OUTPUTS`</span>
+<span class="sd">    dropindices : bool, optional, default=True</span>
+<span class="sd">        Drop indexes for faster insert</span>
+<span class="sd">    source : int, optional, default=0</span>
+<span class="sd">        Indicates terrestrial (1) or satellite data (0)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">files</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s1">&#39;aiscsv&#39;</span><span class="p">]</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;aisdb&#39;</span><span class="p">]</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;baddata&#39;</span><span class="p">]</span>
+
+    <span class="c1"># drop indexes for faster insert</span>
+    <span class="k">if</span> <span class="n">dropindices</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">clean</span><span class="o">.</span><span class="n">drop_indices</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">dirty</span><span class="o">.</span><span class="n">drop_indices</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">sqlworker</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Worker thread</span>
+
+<span class="sd">        Takes batches of tuples from the queue to be inserted into the database</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">msgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()]</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+                <span class="n">msgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">))</span>
+
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">msgs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1">#logging.debug(&quot;Inserting {} rows into {}&quot;.format(n, table.name))</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">insert_rows_batch</span><span class="p">(</span><span class="n">msgs</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error executing query: &quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="c1"># mark this task as done</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">q</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+
+    <span class="c1"># queue for messages to be inserted into db</span>
+    <span class="n">dirtyq</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>
+    <span class="n">cleanq</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>
+    <span class="c1"># set up processing pipeline threads</span>
+    <span class="n">clean_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">sqlworker</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cleanq</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">clean</span><span class="p">))</span>
+    <span class="n">dirty_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">sqlworker</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">dirtyq</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">dirty</span><span class="p">))</span>
+    <span class="n">dirty_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">clean_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">fp</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">files</span><span class="o">.</span><span class="n">iterfiles</span><span class="p">():</span>
+        <span class="c1"># check if we&#39;ve already parsed this file</span>
+        <span class="k">with</span> <span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*) FROM &quot;</span> <span class="o">+</span> <span class="n">db</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span>
+                        <span class="s2">&quot; WHERE filename = </span><span class="si">%s</span><span class="s2"> AND source = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">source</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Already parsed &quot;</span><span class="o">+</span> <span class="n">name</span> <span class="o">+</span><span class="s2">&quot;, skipping...&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+        <span class="c1"># parse file</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">invalid_ctr</span><span class="p">,</span> <span class="n">clean_ctr</span><span class="p">,</span> <span class="n">dirty_ctr</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">parse_file</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span>
+                            <span class="n">name</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">log_path</span><span class="p">,</span> <span class="n">cleanq</span><span class="p">,</span> <span class="n">dirtyq</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+            <span class="n">dirtyq</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+            <span class="n">cleanq</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">insert_row</span><span class="p">({</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                                   <span class="s1">&#39;ext&#39;</span><span class="p">:</span> <span class="n">ext</span><span class="p">,</span>
+                                   <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">invalid_ctr</span><span class="p">,</span>
+                                   <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="n">clean_ctr</span><span class="p">,</span>
+                                   <span class="s1">&#39;dirty&#39;</span><span class="p">:</span> <span class="n">dirty_ctr</span><span class="p">,</span>
+                                   <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">source</span><span class="p">})</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Completed &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span>
+                         <span class="s2">&quot;: </span><span class="si">%d</span><span class="s2"> clean, </span><span class="si">%d</span><span class="s2"> dirty, </span><span class="si">%d</span><span class="s2"> invalid messages, </span><span class="si">%f</span><span class="s2">s&quot;</span><span class="p">,</span>
+                         <span class="n">clean_ctr</span><span class="p">,</span> <span class="n">dirty_ctr</span><span class="p">,</span> <span class="n">invalid_ctr</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error parsing file </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+
+    <span class="c1"># wait for queued tasks to finish</span>
+    <span class="n">dirtyq</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+    <span class="n">cleanq</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing complete, time elapsed = </span><span class="si">%f</span><span class="s2">s&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dropindices</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rebuilding table indices...&quot;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">clean</span><span class="o">.</span><span class="n">create_indices</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">dirty</span><span class="o">.</span><span class="n">create_indices</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finished building indices, time elapsed = </span><span class="si">%f</span><span class="s2">s&quot;</span><span class="p">,</span>
+                     <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_file"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.parse_file">[docs]</a><span class="k">def</span> <span class="nf">parse_file</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">baddata_logfile</span><span class="p">,</span> <span class="n">cleanq</span><span class="p">,</span> <span class="n">dirtyq</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Parses a file containing AIS data, placing rows of data onto queues</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    fp : str</span>
+<span class="sd">        Filepath of file to be parsed</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of file to be parsed</span>
+<span class="sd">    ext : str</span>
+<span class="sd">        Extension, either &#39;.csv&#39; or &#39;.xml&#39;</span>
+<span class="sd">    baddata_logfile : str</span>
+<span class="sd">        Name of the logfile</span>
+<span class="sd">    cleanq :</span>
+<span class="sd">        Queue for messages to be inserted into clean table</span>
+<span class="sd">    dirtyq :</span>
+<span class="sd">        Queue for messages to be inserted into dirty table</span>
+<span class="sd">    source : int, optional, default=0</span>
+<span class="sd">        0 is satellite, 1 is terrestrial</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    invalid_ctr : int</span>
+<span class="sd">        Number of invalid rows</span>
+<span class="sd">    clean_ctr : int</span>
+<span class="sd">        Number of clean rows</span>
+<span class="sd">    dirty_ctr : int</span>
+<span class="sd">        Number of dirty rows</span>
+<span class="sd">    time_elapsed : time</span>
+<span class="sd">        The time elapsed since starting the parse_file procedure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filestart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &quot;</span><span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># open error log csv file and write header</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">baddata_logfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">errorlog</span><span class="p">:</span>
+        <span class="n">logwriter</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">errorlog</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">quotechar</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># message counters</span>
+        <span class="n">clean_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dirty_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">invalid_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Select the a file iterator based on file extension</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.csv&#39;</span><span class="p">:</span>
+            <span class="n">iterator</span> <span class="o">=</span> <span class="n">readcsv</span>
+        <span class="k">elif</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.xml&#39;</span><span class="p">:</span>
+            <span class="n">iterator</span> <span class="o">=</span> <span class="n">readxml</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot parse file with extension </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span> <span class="n">ext</span><span class="p">)</span>
+
+        <span class="c1"># infer the data source from the file name</span>
+        <span class="c1">#source = get_data_source(name)</span>
+
+        <span class="c1"># parse and iterate lines from the current file</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">(</span><span class="n">fp</span><span class="p">):</span>
+            <span class="n">converted_row</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># parse raw data</span>
+                <span class="n">converted_row</span> <span class="o">=</span> <span class="n">parse_raw_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                <span class="n">converted_row</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">source</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># invalid data in row. Write it to error log</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;raw&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                    <span class="n">row</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">AIS_CSV_COLUMNS</span><span class="p">]</span>
+                <span class="n">logwriter</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">)])</span>
+                <span class="n">invalid_ctr</span> <span class="o">=</span> <span class="n">invalid_ctr</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="c1"># missing data in row.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;raw&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                    <span class="n">row</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">AIS_CSV_COLUMNS</span><span class="p">]</span>
+                <span class="n">logwriter</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;Bad row length&quot;</span><span class="p">])</span>
+                <span class="n">invalid_ctr</span> <span class="o">=</span> <span class="n">invalid_ctr</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># validate parsed row and add to appropriate queue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">validated_row</span> <span class="o">=</span> <span class="n">validate_row</span><span class="p">(</span><span class="n">converted_row</span><span class="p">)</span>
+                <span class="n">cleanq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">validated_row</span><span class="p">)</span>
+                <span class="n">clean_ctr</span> <span class="o">=</span> <span class="n">clean_ctr</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">dirtyq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">converted_row</span><span class="p">)</span>
+                <span class="n">dirty_ctr</span> <span class="o">=</span> <span class="n">dirty_ctr</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">invalid_ctr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">baddata_logfile</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">invalid_ctr</span><span class="p">,</span> <span class="n">clean_ctr</span><span class="p">,</span> <span class="n">dirty_ctr</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">filestart</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="readcsv"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.readcsv">[docs]</a><span class="k">def</span> <span class="nf">readcsv</span><span class="p">(</span><span class="n">fp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a dictionary of the subset of columns required</span>
+
+<span class="sd">    Reads each line in CSV file, checks if all columns are available,</span>
+<span class="sd">    and returns a dictionary of the subset of columns required</span>
+<span class="sd">    (as per AIS_CSV_COLUMNS).</span>
+
+<span class="sd">    If row is invalid (too few columns),</span>
+<span class="sd">    returns an empty dictionary.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    fp : str</span>
+<span class="sd">        File path</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    rowsubset : dict</span>
+<span class="sd">        A dictionary of the subset of columns as per `columns`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># fix for large field error. Specify max field size to the maximum convertable int value.</span>
+    <span class="c1"># source: http://stackoverflow.com/questions/15063936/csv-error-field-larger-than-field-limit-131072</span>
+    <span class="n">max_int</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span>
+    <span class="n">decrement</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">while</span> <span class="n">decrement</span><span class="p">:</span>
+        <span class="c1"># decrease the max_int value by factor 10</span>
+        <span class="c1"># as long as the OverflowError occurs.</span>
+        <span class="n">decrement</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">csv</span><span class="o">.</span><span class="n">field_size_limit</span><span class="p">(</span><span class="n">max_int</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OverflowError</span><span class="p">:</span>
+            <span class="n">max_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_int</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+            <span class="n">decrement</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c1"># First line is column headers.</span>
+    <span class="c1"># Use to extract indices of columns we are extracting</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">n_cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">AIS_CSV_COLUMNS</span><span class="p">:</span>
+            <span class="n">indices</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Missing columns in file header: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">quotechar</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="p">):</span>
+            <span class="n">rowsubset</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">rowsubset</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_cols</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">AIS_CSV_COLUMNS</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">rowsubset</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">col</span><span class="p">]]</span> <span class="c1"># raw column data</span>
+                    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                        <span class="c1"># not enough columns, just blank missing data.</span>
+                        <span class="n">rowsubset</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">yield</span> <span class="n">rowsubset</span>
+    <span class="k">except</span> <span class="ne">UnicodeDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">csv</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="readxml"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.aisparser.readxml">[docs]</a><span class="k">def</span> <span class="nf">readxml</span><span class="p">(</span><span class="n">fp</span><span class="p">):</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">_empty_row</span><span class="p">()</span>
+    <span class="c1"># iterate xml &#39;end&#39; events</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">iterparse</span><span class="p">(</span><span class="n">fp</span><span class="p">):</span>
+        <span class="c1"># end of aismessage</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;aismessage&#39;</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">current</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">_empty_row</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">tag</span> <span class="ow">in</span> <span class="n">AIS_XML_COLNAMES</span> <span class="ow">and</span> <span class="n">elem</span><span class="o">.</span><span class="n">text</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">current</span><span class="p">[</span><span class="n">xml_name_to_csv</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">tag</span><span class="p">)]</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">text</span></div>
+
+<span class="k">def</span> <span class="nf">_empty_row</span><span class="p">():</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">AIS_CSV_COLUMNS</span><span class="p">:</span>
+        <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">row</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../pyrate.html">pyrate</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

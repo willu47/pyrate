@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.algorithms.vesselimporter &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../../index.html" />
+    <link rel="up" title="pyrate" href="../../pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyrate.algorithms.vesselimporter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Extracts a subset of clean ships into ais_extended tables</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">from</span> <span class="nn">pyrate.utils</span> <span class="kn">import</span> <span class="n">interpolate_passages</span><span class="p">,</span> <span class="n">valid_imo</span><span class="p">,</span> <span class="n">detect_location_outliers</span>
+
+<span class="n">EXPORT_COMMANDS</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;run&#39;</span><span class="p">,</span> <span class="s1">&#39;Extract a subset of clean ships into ais_extended tables&#39;</span><span class="p">)]</span>
+<span class="n">INPUTS</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">OUTPUTS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;aisdb&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">n_threads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dropindices</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">aisdb</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;aisdb&#39;</span><span class="p">]</span>
+    <span class="n">valid_imos</span><span class="p">,</span> <span class="n">imo_mmsi_intervals</span> <span class="o">=</span> <span class="n">filter_good_ships</span><span class="p">(</span><span class="n">aisdb</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> valid IMO numbers, using </span><span class="si">%d</span><span class="s2"> MMSI numbers&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_imos</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">imo_mmsi_intervals</span><span class="p">))</span>
+    <span class="c1"># pre filter intervals</span>
+    <span class="k">def</span> <span class="nf">filter_intervals</span><span class="p">(</span><span class="n">interval</span><span class="p">):</span>
+        <span class="n">remain</span> <span class="o">=</span> <span class="n">get_remaining_interval</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="o">*</span><span class="n">interval</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">remain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">interval</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">interval</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">remain</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">remain</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">filtered_intervals</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">filter_intervals</span><span class="p">,</span> <span class="n">imo_mmsi_intervals</span><span class="p">)</span>
+    <span class="c1"># sorting intervals by MMSI improves performance on a clustered table</span>
+    <span class="n">sorted_intervals</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">filtered_intervals</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> intervals to import&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_intervals</span><span class="p">))</span>
+    <span class="c1"># insert ships into extended table.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dropindices</span><span class="p">:</span>
+            <span class="n">aisdb</span><span class="o">.</span><span class="n">extended</span><span class="o">.</span><span class="n">drop_indices</span><span class="p">()</span>
+        <span class="n">generate_extended_table</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">sorted_intervals</span><span class="p">,</span> <span class="n">n_threads</span><span class="o">=</span><span class="n">n_threads</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dropindices</span><span class="p">:</span>
+            <span class="n">aisdb</span><span class="o">.</span><span class="n">extended</span><span class="o">.</span><span class="n">create_indices</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Vessel importer done.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="filter_good_ships"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.filter_good_ships">[docs]</a><span class="k">def</span> <span class="nf">filter_good_ships</span><span class="p">(</span><span class="n">aisdb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a set of imo numbers and (mmsi, imo) validity intervals</span>
+
+<span class="sd">    Generate a set of imo numbers and (mmsi, imo) validity intervals</span>
+<span class="sd">    for ships which are deemed to be &#39;clean&#39;.</span>
+<span class="sd">    A clean ship is defined as one which:</span>
+<span class="sd">     * Has valid MMSI numbers associated with it.</span>
+<span class="sd">     * For each MMSI number, the period of time it is associated with this IMO</span>
+<span class="sd">    (via message number 5) overlaps with the period the MMSI number was in use.</span>
+<span class="sd">     * For each MMSI number, its usage period does not overlap with that of any</span>
+<span class="sd">    other of this ship&#39;s MMSI numbers.</span>
+<span class="sd">     * That none of these MMSI numbers have been used by another ship (i.e.</span>
+<span class="sd">    another IMO number is also associated with this MMSI)</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    valid_imos :</span>
+<span class="sd">        A set of valid imo numbers</span>
+<span class="sd">    imo_mmsi_intervals :</span>
+<span class="sd">        A list of (mmsi, imo, start, end) tuples, describing the validity</span>
+<span class="sd">        intervals of each (mmsi, imo) pair</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT distinct imo from {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">imolist</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
+        <span class="n">imo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> <span class="k">if</span> <span class="n">valid_imo</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Checking </span><span class="si">%d</span><span class="s2"> IMOs&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">imo_list</span><span class="p">))</span>
+
+        <span class="n">valid_imos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">imo_mmsi_intervals</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">imo</span> <span class="ow">in</span> <span class="n">imo_list</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;select a.mmsi, a.imo, (a.first_seen, a.last_seen) overlaps (b.first_seen, b.last_seen), LEAST(a.first_seen, b.first_seen), GREATEST(a.last_seen, b.last_seen)</span>
+<span class="s2">                    from imo_list as a</span>
+<span class="s2">                    join imo_list as b on a.mmsi = b.mmsi and b.imo is null</span>
+<span class="s2">                    where a.imo = </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">                    ORDER BY LEAST(a.first_seen, b.first_seen) ASC&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">imo</span><span class="p">])</span>
+            <span class="n">mmsi_ranges</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mmsi_ranges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1">#logging.info(&quot;No MMSI numbers for IMO %s&quot;, imo)</span>
+                <span class="k">continue</span>
+
+            <span class="n">valid</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">last_end</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">for</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">mmsi_ranges</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">overlap</span><span class="p">:</span>
+                    <span class="n">valid</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="c1">#logging.info(&quot;(%s, %s) does not overlap (%s, _)&quot;, mmsi, imo, mmsi)</span>
+                    <span class="k">break</span>
+                <span class="k">if</span> <span class="n">last_end</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">last_end</span><span class="p">:</span>
+                    <span class="n">valid</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="c1">#logging.info(&quot;IMO: %s, overlapping MMSI intervals&quot;, imo)</span>
+                    <span class="k">break</span>
+                <span class="n">last_end</span> <span class="o">=</span> <span class="n">end</span>
+
+            <span class="k">if</span> <span class="n">valid</span><span class="p">:</span>
+                <span class="c1"># check for other users of this mmsi number</span>
+                <span class="n">mmsi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">mmsi_ranges</span><span class="p">]</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;select a.mmsi, a.imo, b.imo</span>
+<span class="s2">                    from imo_list as a</span>
+<span class="s2">                    join imo_list as b on a.mmsi = b.mmsi and a.imo &lt; b.imo</span>
+<span class="s2">                    where a.mmsi IN ({})&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mmsi_list</span><span class="p">])),</span> <span class="n">mmsi_list</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># yay its valid!</span>
+                    <span class="n">valid_imos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imo</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">mmsi_ranges</span><span class="p">:</span>
+                        <span class="n">imo_mmsi_intervals</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                    <span class="c1">#logging.info(&quot;IMO: %s, reuse of MMSI&quot;, imo)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">valid_imos</span><span class="p">,</span> <span class="n">imo_mmsi_intervals</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="cluster_table"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.cluster_table">[docs]</a><span class="k">def</span> <span class="nf">cluster_table</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs a clustering of the postgresql table on the MMSI index.</span>
+
+<span class="sd">    This process significantly improves the runtime of extended table generation.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+        <span class="n">index_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_mmsi_idx&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Clustering table </span><span class="si">%s</span><span class="s2"> on index </span><span class="si">%s</span><span class="s2">. This may take a while...&quot;</span><span class="p">,</span>
+                     <span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">index_name</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CLUSTER {} USING {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">index_name</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="generate_extended_table"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.generate_extended_table">[docs]</a><span class="k">def</span> <span class="nf">generate_extended_table</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">n_threads</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserting </span><span class="si">%d</span><span class="s2"> squeaky clean MMSIs&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">))</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">interval_q</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">interval_q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+
+    <span class="n">pool</span> <span class="o">=</span> <span class="p">[</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">interval_copier</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="n">interval_q</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)]</span>
+    <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">]</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span>
+    <span class="n">remain</span> <span class="o">=</span> <span class="n">total</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">interval_q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+        <span class="n">q_size</span> <span class="o">=</span> <span class="n">interval_q</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">remain</span> <span class="o">&gt;</span> <span class="n">q_size</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> MMSIs completed, </span><span class="si">%f</span><span class="s2">/s.&quot;</span><span class="p">,</span> <span class="n">total</span> <span class="o">-</span> <span class="n">q_size</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="p">(</span><span class="n">total</span> <span class="o">-</span> <span class="n">q_size</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+            <span class="n">remain</span> <span class="o">=</span> <span class="n">q_size</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">interval_q</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="interval_copier"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.interval_copier">[docs]</a><span class="k">def</span> <span class="nf">interval_copier</span><span class="p">(</span><span class="n">db_options</span><span class="p">,</span> <span class="n">interval_q</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">pyrate.repositories</span> <span class="kn">import</span> <span class="n">aisdb</span> <span class="k">as</span> <span class="n">db</span>
+    <span class="n">aisdb</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">db_options</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Start interval copier task&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">aisdb</span><span class="p">:</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">interval_q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="n">interval_q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">process_interval_series</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+            <span class="n">interval_q</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="process_interval_series"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.process_interval_series">[docs]</a><span class="k">def</span> <span class="nf">process_interval_series</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+    <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">interval</span>
+    <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="c1"># constrain interval based on previous import</span>
+    <span class="n">remaining_work</span> <span class="o">=</span> <span class="n">get_remaining_interval</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">remaining_work</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1">#logging.info(&quot;Interval was already inserted: (%s, %s, %s, %s)&quot;, mmsi, imo, start, end)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">remaining_work</span>
+
+    <span class="c1"># get data for this interval range</span>
+    <span class="n">msg_stream</span> <span class="o">=</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">get_message_stream</span><span class="p">(</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">from_ts</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">to_ts</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">use_clean_db</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">row_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">row_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No rows to insert for interval </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">insert_message_stream</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="p">[</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span> <span class="n">msg_stream</span><span class="p">)</span>
+
+    <span class="c1"># finished, commit</span>
+    <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Inserted </span><span class="si">%d</span><span class="s2"> rows for MMSI </span><span class="si">%d</span><span class="s2">. (</span><span class="si">%f</span><span class="s2">s)&quot;</span><span class="p">,</span> <span class="n">row_count</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">row_count</span></div>
+
+<div class="viewcode-block" id="insert_message_stream"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.insert_message_stream">[docs]</a><span class="k">def</span> <span class="nf">insert_message_stream</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">msg_stream</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Takes a stream of messages for an MMSI over an interval, runs it through</span>
+<span class="sd">    outlier detection and interpolation algorithms, then inserts the resulting</span>
+<span class="sd">    stream into the ais_extended table.&quot;&quot;&quot;</span>
+    <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">interval</span>
+    <span class="c1"># call the message filter</span>
+    <span class="n">valid</span><span class="p">,</span> <span class="n">invalid</span> <span class="o">=</span> <span class="n">detect_location_outliers</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">)</span>
+    <span class="n">artificial</span> <span class="o">=</span> <span class="n">interpolate_passages</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+
+    <span class="n">aisdb</span><span class="o">.</span><span class="n">extended</span><span class="o">.</span><span class="n">insert_rows_batch</span><span class="p">(</span><span class="n">valid</span> <span class="o">+</span> <span class="n">artificial</span><span class="p">)</span>
+
+    <span class="c1"># mark the work we&#39;ve done</span>
+    <span class="n">aisdb</span><span class="o">.</span><span class="n">action_log</span><span class="o">.</span><span class="n">insert_row</span><span class="p">({</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s2">&quot;import&quot;</span><span class="p">,</span>
+                                 <span class="s1">&#39;mmsi&#39;</span><span class="p">:</span> <span class="n">mmsi</span><span class="p">,</span>
+                                 <span class="s1">&#39;ts_from&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+                                 <span class="s1">&#39;ts_to&#39;</span><span class="p">:</span> <span class="n">end</span><span class="p">,</span>
+                                 <span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid</span><span class="p">)})</span>
+    <span class="n">aisdb</span><span class="o">.</span><span class="n">action_log</span><span class="o">.</span><span class="n">insert_row</span><span class="p">({</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s2">&quot;outlier detection (noop)&quot;</span><span class="p">,</span>
+                                 <span class="s1">&#39;mmsi&#39;</span><span class="p">:</span> <span class="n">mmsi</span><span class="p">,</span>
+                                 <span class="s1">&#39;ts_from&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+                                 <span class="s1">&#39;ts_to&#39;</span><span class="p">:</span> <span class="n">end</span><span class="p">,</span>
+                                 <span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid</span><span class="p">)})</span>
+    <span class="n">aisdb</span><span class="o">.</span><span class="n">action_log</span><span class="o">.</span><span class="n">insert_row</span><span class="p">({</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s2">&quot;interpolation (noop)&quot;</span><span class="p">,</span>
+                                 <span class="s1">&#39;mmsi&#39;</span><span class="p">:</span> <span class="n">mmsi</span><span class="p">,</span>
+                                 <span class="s1">&#39;ts_from&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+                                 <span class="s1">&#39;ts_to&#39;</span><span class="p">:</span> <span class="n">end</span><span class="p">,</span>
+                                 <span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">artificial</span><span class="p">)})</span>
+    <span class="n">upsert_interval_to_imolist</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_remaining_interval"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.get_remaining_interval">[docs]</a><span class="k">def</span> <span class="nf">get_remaining_interval</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT tsrange(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">) - tsrange(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">) * tsrange(first_seen - interval &#39;1 second&#39;, last_seen + interval &#39;1 second&#39;) FROM {} WHERE mmsi = </span><span class="si">%s</span><span class="s2"> AND imo = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">clean_imolist</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">])</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">sub_interval</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">sub_interval</span><span class="o">.</span><span class="n">isempty</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">sub_interval</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="n">sub_interval</span><span class="o">.</span><span class="n">upper</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error calculating timetamp intersection for MMSI </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="upsert_interval_to_imolist"><a class="viewcode-back" href="../../../api/pyrate.algorithms.html#pyrate.algorithms.vesselimporter.upsert_interval_to_imolist">[docs]</a><span class="k">def</span> <span class="nf">upsert_interval_to_imolist</span><span class="p">(</span><span class="n">aisdb</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*) FROM {} WHERE mmsi = </span><span class="si">%s</span><span class="s2"> AND imo = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">clean_imolist</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                     <span class="p">[</span><span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">])</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;UPDATE {} SET</span>
+<span class="s2">                        first_seen = LEAST(first_seen, </span><span class="si">%s</span><span class="s2">),</span>
+<span class="s2">                        last_seen = GREATEST(last_seen, </span><span class="si">%s</span><span class="s2">)</span>
+<span class="s2">                        WHERE mmsi = </span><span class="si">%s</span><span class="s2"> AND imo = </span><span class="si">%s</span><span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aisdb</span><span class="o">.</span><span class="n">clean_imolist</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">mmsi</span><span class="p">,</span> <span class="n">imo</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">aisdb</span><span class="o">.</span><span class="n">clean_imolist</span><span class="o">.</span><span class="n">insert_row</span><span class="p">({</span><span class="s1">&#39;mmsi&#39;</span><span class="p">:</span> <span class="n">mmsi</span><span class="p">,</span> <span class="s1">&#39;imo&#39;</span><span class="p">:</span> <span class="n">imo</span><span class="p">,</span> <span class="s1">&#39;first_seen&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+                                          <span class="s1">&#39;last_seen&#39;</span><span class="p">:</span> <span class="n">end</span><span class="p">})</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../pyrate.html">pyrate</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

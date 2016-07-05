@@ -1,0 +1,38 @@
+pyrate.pyrate.algorithms package
+================================
+
+Submodules
+----------
+
+pyrate.pyrate.algorithms.aisparser module
+-----------------------------------------
+
+.. automodule:: pyrate.pyrate.algorithms.aisparser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyrate.pyrate.algorithms.imolist module
+---------------------------------------
+
+.. automodule:: pyrate.pyrate.algorithms.imolist
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyrate.pyrate.algorithms.vesselimporter module
+----------------------------------------------
+
+.. automodule:: pyrate.pyrate.algorithms.vesselimporter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyrate.pyrate.algorithms
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrate.utils &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../index.html" />
+    <link rel="up" title="pyrate" href="../pyrate.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyrate.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">geographiclib.geodesic</span> <span class="kn">import</span> <span class="n">Geodesic</span>
+<span class="kn">from</span> <span class="nn">geopy.distance</span> <span class="kn">import</span> <span class="n">distance</span>
+
+<div class="viewcode-block" id="valid_mmsi"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.valid_mmsi">[docs]</a><span class="k">def</span> <span class="nf">valid_mmsi</span><span class="p">(</span><span class="n">mmsi</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks if a given MMSI number is valid.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    mmsi : int</span>
+<span class="sd">        An MMSI number</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Returns True if the MMSI number is 9 digits long.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="ow">not</span> <span class="n">mmsi</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">mmsi</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">9</span></div>
+
+<span class="n">VALID_MESSAGE_IDS</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
+<div class="viewcode-block" id="valid_message_id"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.valid_message_id">[docs]</a><span class="k">def</span> <span class="nf">valid_message_id</span><span class="p">(</span><span class="n">message_id</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">message_id</span> <span class="ow">in</span> <span class="n">VALID_MESSAGE_IDS</span></div>
+
+<span class="n">VALID_NAVIGATIONAL_STATUSES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">])</span>
+<div class="viewcode-block" id="valid_navigational_status"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.valid_navigational_status">[docs]</a><span class="k">def</span> <span class="nf">valid_navigational_status</span><span class="p">(</span><span class="n">status</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">VALID_NAVIGATIONAL_STATUSES</span></div>
+
+<div class="viewcode-block" id="valid_longitude"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.valid_longitude">[docs]</a><span class="k">def</span> <span class="nf">valid_longitude</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check valid longitude.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    lon : integer</span>
+<span class="sd">        A longitude</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True if the longitude is valid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">lon</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">lon</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">180</span> <span class="ow">and</span> <span class="n">lon</span> <span class="o">&lt;=</span> <span class="mi">180</span></div>
+
+<div class="viewcode-block" id="valid_latitude"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.valid_latitude">[docs]</a><span class="k">def</span> <span class="nf">valid_latitude</span><span class="p">(</span><span class="n">lat</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check valid latitude.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    lon : integer</span>
+<span class="sd">        A latitude</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True if the latitude is valid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">lat</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">lat</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">90</span> <span class="ow">and</span> <span class="n">lat</span> <span class="o">&lt;=</span> <span class="mi">90</span></div>
+
+<div class="viewcode-block" id="valid_imo"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.valid_imo">[docs]</a><span class="k">def</span> <span class="nf">valid_imo</span><span class="p">(</span><span class="n">imo</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check valid IMO using checksum.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    imo : integer</span>
+<span class="sd">        An IMO ship identifier</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True if the IMO number is valid</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Taken from Eoin O&#39;Keeffe&#39;s `checksum_valid` function in pyAIS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">str_imo</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">imo</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">str_imo</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">7</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">sum_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">chk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">sum_val</span> <span class="o">+=</span> <span class="n">chk</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">str_imo</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">str_imo</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">sum_val</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">sum_val</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="is_valid_sog"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.is_valid_sog">[docs]</a><span class="k">def</span> <span class="nf">is_valid_sog</span><span class="p">(</span><span class="n">sog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validates speed over ground</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    sog : float</span>
+<span class="sd">        Speed over ground</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True if speed over ground is greater than zero and less than 102.2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sog</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">sog</span> <span class="o">&lt;=</span> <span class="mf">102.2</span></div>
+
+<div class="viewcode-block" id="is_valid_cog"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.is_valid_cog">[docs]</a><span class="k">def</span> <span class="nf">is_valid_cog</span><span class="p">(</span><span class="n">cog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validates course over ground</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    cog : float</span>
+<span class="sd">        Course over ground</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True if course over ground is greater than zero and less than 360 degrees</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">cog</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">cog</span> <span class="o">&lt;</span> <span class="mi">360</span></div>
+
+<div class="viewcode-block" id="is_valid_heading"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.is_valid_heading">[docs]</a><span class="k">def</span> <span class="nf">is_valid_heading</span><span class="p">(</span><span class="n">heading</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validates heading</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    heading : float</span>
+<span class="sd">        The heading of the ship in degrees</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True if heading is greater than zero and less than 360 degrees</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">heading</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">heading</span> <span class="o">&lt;</span> <span class="mi">360</span><span class="p">)</span> <span class="ow">or</span> <span class="n">heading</span> <span class="o">==</span> <span class="mi">511</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="c1">#getting errors on none type for heading</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="speed_calc"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.speed_calc">[docs]</a><span class="k">def</span> <span class="nf">speed_calc</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes the speed between two messages in the message stream</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    msg_stream :</span>
+<span class="sd">        A list of dictionaries representing AIS messages for a single MMSI</span>
+<span class="sd">        number. Dictionary keys correspond to the column names from the</span>
+<span class="sd">        `ais_clean` table. The list of messages should be ordered by</span>
+<span class="sd">        timestamp in ascending order.</span>
+<span class="sd">    index1 : int</span>
+<span class="sd">        The index of the first message</span>
+<span class="sd">    index2 : int</span>
+<span class="sd">        The index of the second message</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    timediff : datetime</span>
+<span class="sd">        The difference in time between the two messages in datetime</span>
+<span class="sd">    dist : float</span>
+<span class="sd">        The distance between messages in nautical miles</span>
+<span class="sd">    speed : float</span>
+<span class="sd">        The speed in knots</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">timediff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">[</span><span class="n">index2</span><span class="p">][</span><span class="s1">&#39;Time&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">index1</span><span class="p">][</span><span class="s1">&#39;Time&#39;</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">distance</span><span class="p">((</span><span class="n">msg_stream</span><span class="p">[</span><span class="n">index1</span><span class="p">][</span><span class="s1">&#39;Latitude&#39;</span><span class="p">],</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">index1</span><span class="p">][</span><span class="s1">&#39;Longitude&#39;</span><span class="p">]),</span>\
+                       <span class="p">(</span><span class="n">msg_stream</span><span class="p">[</span><span class="n">index2</span><span class="p">][</span><span class="s1">&#39;Latitude&#39;</span><span class="p">],</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">index2</span><span class="p">][</span><span class="s1">&#39;Longitude&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">m</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">Geodesic</span><span class="o">.</span><span class="n">WGS84</span><span class="o">.</span><span class="n">Inverse</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">[</span><span class="n">index1</span><span class="p">][</span><span class="s1">&#39;Latitude&#39;</span><span class="p">],</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">index1</span><span class="p">][</span><span class="s1">&#39;Longitude&#39;</span><span class="p">],</span>\
+                       <span class="n">msg_stream</span><span class="p">[</span><span class="n">index2</span><span class="p">][</span><span class="s1">&#39;Latitude&#39;</span><span class="p">],</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">index2</span><span class="p">][</span><span class="s1">&#39;Longitude&#39;</span><span class="p">])[</span><span class="s1">&#39;s12&#39;</span><span class="p">]</span> <span class="c1">#in metres</span>
+    <span class="k">if</span> <span class="n">timediff</span> <span class="o">&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">convert_metres_to_nautical_miles</span> <span class="o">=</span> <span class="mf">0.0005399568</span>
+        <span class="n">speed</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span> <span class="o">*</span> <span class="n">convert_metres_to_nautical_miles</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">timediff</span><span class="o">.</span><span class="n">days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">+</span> <span class="n">timediff</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">3600</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">speed</span> <span class="o">=</span> <span class="mf">102.2</span>
+    <span class="k">return</span> <span class="n">timediff</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">speed</span></div>
+
+<div class="viewcode-block" id="detect_location_outliers"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.detect_location_outliers">[docs]</a><span class="k">def</span> <span class="nf">detect_location_outliers</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Detects outlier messages by submitting messages to a speed test</span>
+
+<span class="sd">    The algorithm proceeds as follows:</span>
+
+<span class="sd">    1)  Create a linked list of all messages with non-null locations</span>
+<span class="sd">        (pointing to next message)</span>
+<span class="sd">    2)  Loop through linked list and check for location outliers:</span>
+<span class="sd">        * A location outlier is who does not pass the speed test (&lt;= 50kn;</span>
+<span class="sd">        link is &#39;discarded&#39; when not reached in time)</span>
+<span class="sd">        * No speed test is performed when</span>
+<span class="sd">            - distance too small (&lt; 0.054nm ~ 100m; catches most positioning</span>
+<span class="sd">              inaccuracies)</span>
+<span class="sd">                =&gt; no outlier</span>
+<span class="sd">            - time gap too big (&gt;= 215h ~ 9d; time it takes to get anywhere on</span>
+<span class="sd">              the globe at 50kn not respecting land)</span>
+<span class="sd">                =&gt;  next message is new &#39;start&#39;</span>
+<span class="sd">        If an alledged outlier is found its link is set to be the current</span>
+<span class="sd">        message&#39;s link</span>
+<span class="sd">    3)  The start of a linked list becomes special attention: if speed check</span>
+<span class="sd">        fails, the subsequent link is tested</span>
+
+<span class="sd">    Line of thinking is: Can I get to the next message in time? If not &#39;next&#39;</span>
+<span class="sd">    must be an outlier, go to next but one.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    msg_stream :</span>
+<span class="sd">        A list of dictionaries representing AIS messages for a single MMSI</span>
+<span class="sd">        number. Dictionary keys correspond to the column names from the</span>
+<span class="sd">        `ais_clean` table. The list of messages should be ordered by</span>
+<span class="sd">        timestamp in ascending order.</span>
+<span class="sd">    as_df : bool, optional</span>
+<span class="sd">        Set to True if `msg_stream` are passed as a pandas DataFrame</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    outlier_rows :</span>
+<span class="sd">        The rows in the message stream which are outliers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;msg_stream cannot be DataFrame, as_df=True does not work yet.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 1) linked list</span>
+    <span class="n">linked_rows</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">)</span>
+    <span class="n">link</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">has_location_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">row_index</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">row_index</span><span class="p">][</span><span class="s1">&#39;Longitude&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">msg_stream</span><span class="p">[</span><span class="n">row_index</span><span class="p">][</span><span class="s1">&#39;Latitude&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">linked_rows</span><span class="p">[</span><span class="n">row_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span>
+            <span class="n">link</span> <span class="o">=</span> <span class="n">row_index</span>
+            <span class="n">has_location_count</span> <span class="o">=</span> <span class="n">has_location_count</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c1"># 2)</span>
+    <span class="n">outlier_rows</span> <span class="o">=</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">has_location_count</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># no messages that could be outliers available</span>
+        <span class="k">return</span> <span class="n">outlier_rows</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">linked_rows</span><span class="p">)</span> <span class="k">if</span> <span class="n">j</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">at_start</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">while</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># time difference, distance and speed beetween rows of index and corresponding link</span>
+        <span class="n">timediff</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">speed</span> <span class="o">=</span> <span class="n">speed_calc</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">timediff</span> <span class="o">&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">215</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">at_start</span> <span class="o">=</span> <span class="bp">True</span> <span class="c1">#restart</span>
+        <span class="k">elif</span>  <span class="n">dist</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="c1">#skip over gap (at_start remains same)</span>
+        <span class="k">elif</span> <span class="n">speed</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">at_start</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="c1">#for now just skip single outliers, i.e. test current index with next but one</span>
+                <span class="n">outlier_rows</span><span class="p">[</span><span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
+            <span class="k">elif</span> <span class="n">at_start</span> <span class="ow">is</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c1">#no subsequent message</span>
+                <span class="n">outlier_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">outlier_rows</span><span class="p">[</span><span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1"># explore first three messages A, B, C (at_start is True)</span>
+                <span class="n">indexA</span> <span class="o">=</span> <span class="n">index</span>
+                <span class="n">indexB</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">indexC</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">indexB</span><span class="p">]</span>
+
+                <span class="n">timediffAC</span><span class="p">,</span> <span class="n">distAC</span><span class="p">,</span> <span class="n">speedAC</span> <span class="o">=</span> <span class="n">speed_calc</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">,</span> <span class="n">indexA</span><span class="p">,</span> <span class="n">indexC</span><span class="p">)</span>
+                <span class="n">timediffBC</span><span class="p">,</span> <span class="n">distBC</span><span class="p">,</span> <span class="n">speedBC</span> <span class="o">=</span> <span class="n">speed_calc</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">,</span> <span class="n">indexB</span><span class="p">,</span> <span class="n">indexC</span><span class="p">)</span>
+
+                <span class="c1">#if speedtest A-&gt;C ok or distance small, then B is outlier, next index is C</span>
+                <span class="k">if</span> <span class="n">timediffAC</span> <span class="o">&lt;=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">215</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">distAC</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="ow">or</span> <span class="n">speedAC</span> <span class="o">&lt;=</span> <span class="mi">50</span><span class="p">):</span>
+                    <span class="n">outlier_rows</span><span class="p">[</span><span class="n">indexB</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">indexC</span>
+                    <span class="n">at_start</span> <span class="o">=</span> <span class="bp">False</span>
+
+                <span class="c1">#elif speedtest B-&gt;C ok or distance, then A is outlier, next index is C</span>
+                <span class="k">elif</span> <span class="n">timediffBC</span> <span class="o">&lt;=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">215</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">distBC</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="ow">or</span> <span class="n">speedBC</span> <span class="o">&lt;=</span> <span class="mi">50</span><span class="p">):</span>
+                    <span class="n">outlier_rows</span><span class="p">[</span><span class="n">indexA</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">indexC</span>
+                    <span class="n">at_start</span> <span class="o">=</span> <span class="bp">False</span>
+
+                <span class="c1">#else bot not ok, dann A and B outlier, set C to new start</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">outlier_rows</span><span class="p">[</span><span class="n">indexA</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">outlier_rows</span><span class="p">[</span><span class="n">indexB</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">indexC</span>
+                    <span class="n">at_start</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1">#all good</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">linked_rows</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">at_start</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">return</span> <span class="n">outlier_rows</span></div>
+
+<div class="viewcode-block" id="interpolate_passages"><a class="viewcode-back" href="../../api/pyrate.html#pyrate.utils.interpolate_passages">[docs]</a><span class="k">def</span> <span class="nf">interpolate_passages</span><span class="p">(</span><span class="n">msg_stream</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interpolate far apart points in an ordered stream of messages.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    msg_stream :</span>
+<span class="sd">        A list of dictionaries representing AIS messages for a single MMSI</span>
+<span class="sd">        number. Dictionary keys correspond to the column names from the</span>
+<span class="sd">        `ais_clean` table. The list of messages should be ordered by</span>
+<span class="sd">        timestamp in ascending order.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    artificial_messages : list</span>
+<span class="sd">        A list of artificial messages to fill in gaps/navigate around land.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">artificial_messages</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">artificial_messages</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pyrate.html">pyrate</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Julia Schaumeier, Sam Macbeth, Will Usher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
