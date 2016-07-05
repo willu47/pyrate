@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyrate package &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    <title>pyrate package &mdash; pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        VERSION:     '0.1.5.post0.dev10+ngb827f7b.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../index.html" />
+    <link rel="top" title="pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation" href="../index.html" />
     <link rel="up" title="Modules" href="modules.html" />
     <link rel="next" title="pyrate.algorithms package" href="pyrate.algorithms.html" />
     <link rel="prev" title="Modules" href="modules.html" />
@@ -89,6 +89,29 @@
 <code class="descclassname">pyrate.cli.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/cli.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.cli.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>The command line interface</p>
 <p>Type <cite>pyrate &#8211;help</cite> for help on how to use the command line interface</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyrate.config_setter">
+<span id="pyrate-config-setter-module"></span><h2>pyrate.config_setter module<a class="headerlink" href="#module-pyrate.config_setter" title="Permalink to this headline">¶</a></h2>
+<p>Generates a default config file in current folder</p>
+<dl class="function">
+<dt id="pyrate.config_setter.gen_default_config">
+<code class="descclassname">pyrate.config_setter.</code><code class="descname">gen_default_config</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/config_setter.html#gen_default_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.config_setter.gen_default_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a default config file in current folder</p>
+<p>This command generates a default configuration file and folder structure
+in the current folder.</p>
+<p>The folders generated are:</p>
+<dl class="docutils">
+<dt>repositories</dt>
+<dd>To hold additional repository code for pyrate</dd>
+<dt>algorithms</dt>
+<dd>To hold additional algorithm code for pyrate</dd>
+<dt>aiscsv</dt>
+<dd>For AIS csv files (required by algorithms/aisparser.py)</dd>
+<dt>baddata</dt>
+<dd>For AIS import logfiles (required by algorithms/aisparser.py)</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -177,26 +200,22 @@ and executes operations on them.</p>
 <li><p class="first">Create a linked list of all messages with non-null locations
 (pointing to next message)</p>
 </li>
-<li><p class="first">Loop through linked list and check for location outliers:
-* A location outlier is who does not pass the speed test (&lt;= 50kn;
-link is &#8216;discarded&#8217; when not reached in time)
-* No speed test is performed when</p>
-<blockquote>
-<div><ul>
-<li><p class="first">distance too small (&lt; 0.054nm ~ 100m; catches most positioning
-inaccuracies)</p>
-<blockquote>
-<div><p>=&gt; no outlier</p>
-</div></blockquote>
+<li><p class="first">Loop through linked list and check for location outliers:</p>
+<ul>
+<li><p class="first">A location outlier is who does not pass the speed test (&lt;= 50kn;
+link is &#8216;discarded&#8217; when not reached in time)</p>
 </li>
-<li><p class="first">time gap too big (&gt;= 215h ~ 9d; time it takes to get anywhere on
-the globe at 50kn not respecting land)</p>
+<li><p class="first">No speed test is performed when:</p>
 <blockquote>
-<div><p>=&gt;  next message is new &#8216;start&#8217;</p>
+<div><ul class="simple">
+<li>distance too small (&lt; 0.054nm ~ 100m; catches most positioning
+inaccuracies) =&gt; no outlier</li>
+<li>time gap too big (&gt;= 215h ~ 9d; time it takes to get anywhere on
+the globe at 50kn not respecting land) =&gt;  next message is new &#8216;start&#8217;</li>
+</ul>
 </div></blockquote>
 </li>
 </ul>
-</div></blockquote>
 <p>If an alledged outlier is found its link is set to be the current
 message&#8217;s link</p>
 </li>
@@ -454,6 +473,7 @@ timestamp in ascending order.</li>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-pyrate.cli">pyrate.cli module</a></li>
+<li><a class="reference internal" href="#module-pyrate.config_setter">pyrate.config_setter module</a></li>
 <li><a class="reference internal" href="#module-pyrate.loader">pyrate.loader module</a></li>
 <li><a class="reference internal" href="#module-pyrate.utils">pyrate.utils module</a></li>
 <li><a class="reference internal" href="#module-pyrate">Module contents</a></li>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyrate.utils &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    <title>pyrate.utils &mdash; pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation</title>
     
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        VERSION:     '0.1.5.post0.dev10+ngb827f7b.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../index.html" />
+    <link rel="top" title="pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation" href="../../index.html" />
     <link rel="up" title="pyrate" href="../pyrate.html" />
    
   
@@ -212,21 +212,23 @@
 
 <span class="sd">    The algorithm proceeds as follows:</span>
 
-<span class="sd">    1)  Create a linked list of all messages with non-null locations</span>
+<span class="sd">    #.  Create a linked list of all messages with non-null locations</span>
 <span class="sd">        (pointing to next message)</span>
-<span class="sd">    2)  Loop through linked list and check for location outliers:</span>
+<span class="sd">    #.  Loop through linked list and check for location outliers:</span>
+
 <span class="sd">        * A location outlier is who does not pass the speed test (&lt;= 50kn;</span>
-<span class="sd">        link is &#39;discarded&#39; when not reached in time)</span>
-<span class="sd">        * No speed test is performed when</span>
-<span class="sd">            - distance too small (&lt; 0.054nm ~ 100m; catches most positioning</span>
-<span class="sd">              inaccuracies)</span>
-<span class="sd">                =&gt; no outlier</span>
-<span class="sd">            - time gap too big (&gt;= 215h ~ 9d; time it takes to get anywhere on</span>
-<span class="sd">              the globe at 50kn not respecting land)</span>
-<span class="sd">                =&gt;  next message is new &#39;start&#39;</span>
+<span class="sd">          link is &#39;discarded&#39; when not reached in time)</span>
+<span class="sd">        * No speed test is performed when:</span>
+
+<span class="sd">            * distance too small (&lt; 0.054nm ~ 100m; catches most positioning</span>
+<span class="sd">              inaccuracies) =&gt; no outlier</span>
+<span class="sd">            * time gap too big (&gt;= 215h ~ 9d; time it takes to get anywhere on</span>
+<span class="sd">              the globe at 50kn not respecting land) =&gt;  next message is new &#39;start&#39;</span>
+
 <span class="sd">        If an alledged outlier is found its link is set to be the current</span>
 <span class="sd">        message&#39;s link</span>
-<span class="sd">    3)  The start of a linked list becomes special attention: if speed check</span>
+
+<span class="sd">    #.  The start of a linked list becomes special attention: if speed check</span>
 <span class="sd">        fails, the subsequent link is tested</span>
 
 <span class="sd">    Line of thinking is: Can I get to the next message in time? If not &#39;next&#39;</span>
@@ -246,6 +248,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    outlier_rows :</span>
 <span class="sd">        The rows in the message stream which are outliers</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;msg_stream cannot be DataFrame, as_df=True does not work yet.&#39;</span><span class="p">)</span>

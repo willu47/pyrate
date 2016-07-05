@@ -21,6 +21,14 @@ pyrate.cli module
     :undoc-members:
     :show-inheritance:
 
+pyrate.config_setter module
+---------------------------
+
+.. automodule:: pyrate.config_setter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pyrate.loader module
 --------------------
 

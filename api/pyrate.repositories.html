@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyrate.repositories package &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    <title>pyrate.repositories package &mdash; pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        VERSION:     '0.1.5.post0.dev10+ngb827f7b.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../index.html" />
+    <link rel="top" title="pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation" href="../index.html" />
     <link rel="up" title="pyrate package" href="pyrate.html" />
     <link rel="next" title="pyrate.tools package" href="pyrate.tools.html" />
     <link rel="prev" title="pyrate.algorithms package" href="pyrate.algorithms.html" />
@@ -78,7 +78,7 @@
 
 <dl class="attribute">
 <dt id="pyrate.repositories.aisdb.AISdb.clean_db_spec">
-<code class="descname">clean_db_spec</code><em class="property"> = {'cols': [('MMSI', 'integer'), ('Time', 'timestamp without time zone'), ('Message_ID', 'integer'), ('Navigational_status', 'integer'), ('SOG', 'double precision'), ('Longitude', 'double precision'), ('Latitude', 'double precision'), ('COG', 'double precision'), ('Heading', 'double precision'), ('IMO', 'integer null'), ('Draught', 'double precision'), ('Destination', 'character varying(255)'), ('Vessel_Name', 'character varying(255)'), ('ETA_month', 'integer'), ('ETA_day', 'integer'), ('ETA_hour', 'integer'), ('ETA_minute', 'integer'), ('source', 'smallint'), ('ID', 'SERIAL PRIMARY KEY')], 'indices': [('dt_idx', ['Time']), ('imo_idx', ['IMO']), ('lonlat_idx', ['Longitude', 'Latitude']), ('mmsi_idx', ['MMSI']), ('msg_idx', ['Message_ID']), ('source_idx', ['source']), ('mmsi_imo_idx', ['MMSI', 'IMO'])]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.clean_db_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descname">clean_db_spec</code><em class="property"> = {'cols': [('MMSI', 'integer'), ('Time', 'timestamp without time zone'), ('Message_ID', 'integer'), ('Navigational_status', 'integer'), ('SOG', 'double precision'), ('Longitude', 'double precision'), ('Latitude', 'double precision'), ('COG', 'double precision'), ('Heading', 'double precision'), ('IMO', 'integer null'), ('Draught', 'double precision'), ('Destination', 'character varying(255)'), ('Vessel_Name', 'character varying(255)'), ('ETA_month', 'integer'), ('ETA_day', 'integer'), ('ETA_hour', 'integer'), ('ETA_minute', 'integer'), ('source', 'smallint'), ('ID', 'BIGSERIAL PRIMARY KEY')], 'indices': [('dt_idx', ['Time']), ('imo_idx', ['IMO']), ('lonlat_idx', ['Longitude', 'Latitude']), ('mmsi_idx', ['MMSI']), ('msg_idx', ['Message_ID']), ('source_idx', ['source']), ('mmsi_imo_idx', ['MMSI', 'IMO'])]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.clean_db_spec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -94,7 +94,7 @@
 
 <dl class="attribute">
 <dt id="pyrate.repositories.aisdb.AISdb.dirty_db_spec">
-<code class="descname">dirty_db_spec</code><em class="property"> = {'cols': [('MMSI', 'bigint'), ('Time', 'timestamp without time zone'), ('Message_ID', 'integer'), ('Navigational_status', 'integer'), ('SOG', 'double precision'), ('Longitude', 'double precision'), ('Latitude', 'double precision'), ('COG', 'double precision'), ('Heading', 'double precision'), ('IMO', 'integer null'), ('Draught', 'double precision'), ('Destination', 'character varying(255)'), ('Vessel_Name', 'character varying(255)'), ('ETA_month', 'integer'), ('ETA_day', 'integer'), ('ETA_hour', 'integer'), ('ETA_minute', 'integer'), ('source', 'smallint'), ('ID', 'SERIAL PRIMARY KEY')], 'indices': [('dt_idx', ['Time']), ('imo_idx', ['IMO']), ('lonlat_idx', ['Longitude', 'Latitude']), ('mmsi_idx', ['MMSI']), ('msg_idx', ['Message_ID']), ('source_idx', ['source']), ('mmsi_imo_idx', ['MMSI', 'IMO'])]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.dirty_db_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dirty_db_spec</code><em class="property"> = {'cols': [('MMSI', 'bigint'), ('Time', 'timestamp without time zone'), ('Message_ID', 'integer'), ('Navigational_status', 'integer'), ('SOG', 'double precision'), ('Longitude', 'double precision'), ('Latitude', 'double precision'), ('COG', 'double precision'), ('Heading', 'double precision'), ('IMO', 'integer null'), ('Draught', 'double precision'), ('Destination', 'character varying(255)'), ('Vessel_Name', 'character varying(255)'), ('ETA_month', 'integer'), ('ETA_day', 'integer'), ('ETA_hour', 'integer'), ('ETA_minute', 'integer'), ('source', 'smallint'), ('ID', 'BIGSERIAL PRIMARY KEY')], 'indices': [('dt_idx', ['Time']), ('imo_idx', ['IMO']), ('lonlat_idx', ['Longitude', 'Latitude']), ('mmsi_idx', ['MMSI']), ('msg_idx', ['Message_ID']), ('source_idx', ['source']), ('mmsi_imo_idx', ['MMSI', 'IMO'])]}</em><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.dirty_db_spec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -137,6 +137,12 @@
 <dt id="pyrate.repositories.aisdb.AISdb.truncate">
 <code class="descname">truncate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.truncate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Delete all data in the AIS table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyrate.repositories.aisdb.AISdb.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/repositories/aisdb.html#AISdb.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.repositories.aisdb.AISdb.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates (non-destructively) existing tables to new schema</p>
 </dd></dl>
 
 </dd></dl>

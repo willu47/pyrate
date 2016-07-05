@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyrate.algorithms.vesselimporter &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    <title>pyrate.algorithms.vesselimporter &mdash; pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        VERSION:     '0.1.5.post0.dev10+ngb827f7b.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../../../index.html" />
+    <link rel="top" title="pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation" href="../../../index.html" />
     <link rel="up" title="pyrate" href="../../pyrate.html" />
    
   
@@ -80,23 +80,24 @@
     <span class="sd">&quot;&quot;&quot;Generate a set of imo numbers and (mmsi, imo) validity intervals</span>
 
 <span class="sd">    Generate a set of imo numbers and (mmsi, imo) validity intervals</span>
-<span class="sd">    for ships which are deemed to be &#39;clean&#39;.</span>
-<span class="sd">    A clean ship is defined as one which:</span>
+<span class="sd">    for ships which are deemed to be &#39;clean&#39;. A clean ship is defined as one which:</span>
+
 <span class="sd">     * Has valid MMSI numbers associated with it.</span>
 <span class="sd">     * For each MMSI number, the period of time it is associated with this IMO</span>
-<span class="sd">    (via message number 5) overlaps with the period the MMSI number was in use.</span>
+<span class="sd">       (via message number 5) overlaps with the period the MMSI number was in use.</span>
 <span class="sd">     * For each MMSI number, its usage period does not overlap with that of any</span>
-<span class="sd">    other of this ship&#39;s MMSI numbers.</span>
+<span class="sd">       other of this ship&#39;s MMSI numbers.</span>
 <span class="sd">     * That none of these MMSI numbers have been used by another ship (i.e.</span>
-<span class="sd">    another IMO number is also associated with this MMSI)</span>
+<span class="sd">       another IMO number is also associated with this MMSI)</span>
 
-<span class="sd">    Return</span>
-<span class="sd">    ------</span>
+<span class="sd">    Returns</span>
+<span class="sd">    =======</span>
 <span class="sd">    valid_imos :</span>
 <span class="sd">        A set of valid imo numbers</span>
 <span class="sd">    imo_mmsi_intervals :</span>
 <span class="sd">        A list of (mmsi, imo, start, end) tuples, describing the validity</span>
 <span class="sd">        intervals of each (mmsi, imo) pair</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">with</span> <span class="n">aisdb</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>

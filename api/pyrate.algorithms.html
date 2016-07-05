@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyrate.algorithms package &mdash; pyrate 0.1.5.post0.dev5+nga320dc7 documentation</title>
+    <title>pyrate.algorithms package &mdash; pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.5.post0.dev5+nga320dc7',
+        VERSION:     '0.1.5.post0.dev10+ngb827f7b.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="pyrate 0.1.5.post0.dev5+nga320dc7 documentation" href="../index.html" />
+    <link rel="top" title="pyrate 0.1.5.post0.dev10+ngb827f7b.dirty documentation" href="../index.html" />
     <link rel="up" title="pyrate package" href="pyrate.html" />
     <link rel="next" title="pyrate.repositories package" href="pyrate.repositories.html" />
     <link rel="prev" title="pyrate package" href="pyrate.html" />
@@ -63,17 +63,15 @@
 <dd><p>Guesses data source from file name.</p>
 <p>If the name contains &#8216;terr&#8217; then we guess terrestrial data,
 otherwise we assume satellite.</p>
-<dl class="docutils">
-<dt>name</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>File name</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">0 if satellite, 1 if terrestrial</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<a class="reference external" href="http://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) &#8211; File name</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)">int</a></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">0 if satellite, 1 if terrestrial</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)">int</a></td>
 </tr>
 </tbody>
 </table>
@@ -274,27 +272,18 @@ specifying an IMO are collected.</p>
 <code class="descclassname">pyrate.algorithms.vesselimporter.</code><code class="descname">filter_good_ships</code><span class="sig-paren">(</span><em>aisdb</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyrate/algorithms/vesselimporter.html#filter_good_ships"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrate.algorithms.vesselimporter.filter_good_ships" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a set of imo numbers and (mmsi, imo) validity intervals</p>
 <p>Generate a set of imo numbers and (mmsi, imo) validity intervals
-for ships which are deemed to be &#8216;clean&#8217;.
-A clean ship is defined as one which:</p>
+for ships which are deemed to be &#8216;clean&#8217;. A clean ship is defined as one which:</p>
 <blockquote>
 <div><ul class="simple">
 <li>Has valid MMSI numbers associated with it.</li>
-<li>For each MMSI number, the period of time it is associated with this IMO</li>
+<li>For each MMSI number, the period of time it is associated with this IMO
+(via message number 5) overlaps with the period the MMSI number was in use.</li>
+<li>For each MMSI number, its usage period does not overlap with that of any
+other of this ship&#8217;s MMSI numbers.</li>
+<li>That none of these MMSI numbers have been used by another ship (i.e.
+another IMO number is also associated with this MMSI)</li>
 </ul>
 </div></blockquote>
-<dl class="docutils">
-<dt>(via message number 5) overlaps with the period the MMSI number was in use.</dt>
-<dd><ul class="first last simple">
-<li>For each MMSI number, its usage period does not overlap with that of any</li>
-</ul>
-</dd>
-<dt>other of this ship&#8217;s MMSI numbers.</dt>
-<dd><ul class="first last simple">
-<li>That none of these MMSI numbers have been used by another ship (i.e.</li>
-</ul>
-</dd>
-</dl>
-<p>another IMO number is also associated with this MMSI)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
